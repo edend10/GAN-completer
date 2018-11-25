@@ -16,7 +16,7 @@ def load_dataset(dataset_name, image_size, batch_size):
                                    transforms.ToTensor(),
                                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                                ])),
-            batch_size = batch_size, shuffle = True)
+            batch_size=batch_size, shuffle=True)
 
     elif dataset_name == 'mnist':
         dataloader = torch.utils.data.DataLoader(
@@ -36,6 +36,15 @@ def load_dataset(dataset_name, image_size, batch_size):
                                transforms.ToTensor(),
                                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                            ])),
+            batch_size=batch_size, shuffle=True)
+    elif dataset_name == 'celeba':
+        dataloader = torch.utils.data.DataLoader(
+            datasets.ImageFolder(path,
+                                 transform=transforms.Compose([
+                                     transforms.Resize(image_size),
+                                     transforms.ToTensor(),
+                                     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                                 ])),
             batch_size=batch_size, shuffle=True)
 
     return dataloader

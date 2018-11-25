@@ -20,9 +20,9 @@ parser.add_argument('--latent_dim', type=int, default=100, help='dimensionality 
 parser.add_argument('--img_size', type=int, default=32, help='size of each image dimension')
 parser.add_argument('--channels', type=int, default=3, help='number of image channels')
 parser.add_argument('--sample_interval', type=int, default=400, help='interval between image sampling')
-parser.add_argument('--dataset', type=str, default='cifar10', help='interval between image sampling')
-parser.add_argument('--logging', type=bool, default=False, help='interval between image sampling')
-parser.add_argument('--log_port', type=int, default=8080, help='interval between image sampling')
+parser.add_argument('--dataset', type=str, default='cifar10', help='dataset name')
+parser.add_argument('--logging', type=bool, default=False, help='log or not')
+parser.add_argument('--log_port', type=int, default=8080, help='visdom log panel port')
 opt = parser.parse_args()
 print(opt)
 
@@ -55,6 +55,7 @@ adversarial_loss = torch.nn.BCELoss()
 generator = Generator(opt.img_size, opt.latent_dim, opt.channels)
 discriminator = Discriminator(opt.img_size, opt.channels)
 
+
 if cuda:
     generator.cuda()
     discriminator.cuda()
@@ -79,7 +80,7 @@ Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 for epoch in range(opt.n_epochs):
     avg_g_loss = 0
     avg_d_loss = 0
-    epoch_batches = 0
+    epoch_batches = 1
     for i, (imgs, _) in enumerate(dataloader):
 
         # Adversarial ground truths
@@ -121,7 +122,7 @@ for epoch in range(opt.n_epochs):
         d_loss.backward()
         optimizer_D.step()
 
-        print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]" % (epoch, opt.n_epochs, i, len(dataloader),
+        print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]" % (epoch, opt.n_epochs, i, len(dataloader),
                                                             d_loss.item(), g_loss.item()))
 
         # for logging purposes
