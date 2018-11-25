@@ -7,6 +7,8 @@ from torchnet.logger import VisdomPlotLogger
 
 def load_dataset(dataset_name, image_size, batch_size):
     path = 'data/' + dataset_name
+    normal_mean = (0.5, 0.5, 0.5)
+    normal_std = (0.5, 0.5, 0.5)
     os.makedirs(path, exist_ok=True)
     if dataset_name == 'cifar10':
         dataloader = torch.utils.data.DataLoader(
@@ -14,7 +16,7 @@ def load_dataset(dataset_name, image_size, batch_size):
                                transform=transforms.Compose([
                                    transforms.Resize(image_size),
                                    transforms.ToTensor(),
-                                   transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                                   transforms.Normalize(normal_mean, normal_std)
                                ])),
             batch_size=batch_size, shuffle=True)
 
@@ -24,7 +26,7 @@ def load_dataset(dataset_name, image_size, batch_size):
                            transform=transforms.Compose([
                                transforms.Resize(image_size),
                                transforms.ToTensor(),
-                               transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                               transforms.Normalize(normal_mean, normal_std)
                            ])),
             batch_size=batch_size, shuffle=True)
 
@@ -34,16 +36,17 @@ def load_dataset(dataset_name, image_size, batch_size):
                            transform=transforms.Compose([
                                transforms.Resize(image_size),
                                transforms.ToTensor(),
-                               transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                               transforms.Normalize(normal_mean, normal_std)
                            ])),
             batch_size=batch_size, shuffle=True)
     elif dataset_name == 'celeba':
         dataloader = torch.utils.data.DataLoader(
             datasets.ImageFolder(path,
                                  transform=transforms.Compose([
+                                     transforms.CenterCrop(128),
                                      transforms.Resize(image_size),
                                      transforms.ToTensor(),
-                                     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                                     transforms.Normalize(normal_mean, normal_std)
                                  ])),
             batch_size=batch_size, shuffle=True)
 
