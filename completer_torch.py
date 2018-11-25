@@ -1,12 +1,8 @@
 import argparse
 import os
 import numpy as np
-import math
 from torchvision.utils import save_image
-from torch.utils.data import DataLoader
 from torch.autograd import Variable
-import torch.nn as nn
-import torch.nn.functional as F
 import torch
 import helper
 from models import Generator, Discriminator
@@ -25,6 +21,7 @@ parser.add_argument('--img_size', type=int, default=64, help='size of each image
 parser.add_argument('--channels', type=int, default=3, help='number of image channels')
 parser.add_argument('--sample_interval', type=int, default=400, help='interval between image sampling')
 parser.add_argument('--dataset', type=str, default='cifar10', help='interval between image sampling')
+parser.add_argument('--logging', type=bool, default=False, help='interval between image sampling')
 opt = parser.parse_args()
 print(opt)
 
@@ -44,6 +41,10 @@ def weights_init_normal(m):
         torch.nn.init.normal_(m.weight.data, 1.0, 0.02)
         torch.nn.init.constant_(m.bias.data, 0.0)
 
+
+# Logging
+if opt.logging:
+    d_loss_log_scalar, g_loss_log_scalar = helper.get_loggers('/completer');
 
 # Loss function
 adversarial_loss = torch.nn.BCELoss()
@@ -114,6 +115,11 @@ for epoch in range(opt.n_epochs):
 
         d_loss.backward()
         optimizer_D.step()
+
+        if opt.logging:
+            train_step = epoch * len(dataloader) + i
+            d_loss_log_scalar.add_record(train_step, float(d_loss))
+            g_loss_log_scalar.add_record(train_step, float(g_loss))
 
         print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]" % (epoch, opt.n_epochs, i, len(dataloader),
                                                             d_loss.item(), g_loss.item()))
