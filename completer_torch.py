@@ -77,6 +77,9 @@ Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 # ----------
 
 for epoch in range(opt.n_epochs):
+    avg_g_loss = 0
+    avg_d_loss = 0
+    epoch_batches = 0
     for i, (imgs, _) in enumerate(dataloader):
 
         # Adversarial ground truths
@@ -118,17 +121,24 @@ for epoch in range(opt.n_epochs):
         d_loss.backward()
         optimizer_D.step()
 
-        if opt.logging:
-            train_step = epoch * len(dataloader) + i
-            d_loss_logger.log(train_step, float(d_loss))
-            g_loss_logger.log(train_step, float(g_loss))
-
         print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]" % (epoch, opt.n_epochs, i, len(dataloader),
                                                             d_loss.item(), g_loss.item()))
+
+        # for logging purposes
+        avg_d_loss += float(d_loss)
+        avg_g_loss += float(g_loss)
+        epoch_batches += 1
 
         batches_done = epoch * len(dataloader) + i
         if batches_done % opt.sample_interval == 0:
             save_image(gen_imgs.data[:25], 'images/%d.png' % batches_done, nrow=5, normalize=True)
+
+    # log epoch losses
+    avg_d_loss /= epoch_batches
+    avg_g_loss /= epoch_batches
+    if opt.logging:
+        g_loss_logger.log(epoch, avg_g_loss)
+        d_loss_logger.log(epoch, avg_d_loss)
 
     # checkpoint
     torch.save(generator.state_dict(), "g_model")
