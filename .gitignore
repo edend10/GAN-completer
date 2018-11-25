@@ -6,3 +6,6 @@ images
 dcgan.py
 ops.py
 tf_completer.py
+.DS_Store
+g_model
+d_model
