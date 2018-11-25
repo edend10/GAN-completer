@@ -28,7 +28,7 @@ def load_dataset(dataset_name, image_size, batch_size,):
 
     elif dataset_name == 'stl10':
         dataloader = torch.utils.data.DataLoader(
-            datasets.STL10('data/stl10', train=True, download=True,
+            datasets.STL10('data/stl10', 'train', download=True,
                            transform=transforms.Compose([
                                transforms.Resize(image_size),
                                transforms.ToTensor(),
