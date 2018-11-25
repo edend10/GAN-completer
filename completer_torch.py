@@ -17,11 +17,12 @@ parser.add_argument('--b1', type=float, default=0.5, help='adam: decay of first 
 parser.add_argument('--b2', type=float, default=0.999, help='adam: decay of first order momentum of gradient')
 parser.add_argument('--n_cpu', type=int, default=8, help='number of cpu threads to use during batch generation')
 parser.add_argument('--latent_dim', type=int, default=100, help='dimensionality of the latent space')
-parser.add_argument('--img_size', type=int, default=64, help='size of each image dimension')
+parser.add_argument('--img_size', type=int, default=32, help='size of each image dimension')
 parser.add_argument('--channels', type=int, default=3, help='number of image channels')
 parser.add_argument('--sample_interval', type=int, default=400, help='interval between image sampling')
 parser.add_argument('--dataset', type=str, default='cifar10', help='interval between image sampling')
 parser.add_argument('--logging', type=bool, default=False, help='interval between image sampling')
+parser.add_argument('--log_port', type=int, default=8080, help='interval between image sampling')
 opt = parser.parse_args()
 print(opt)
 
@@ -44,7 +45,8 @@ def weights_init_normal(m):
 
 # Logging
 if opt.logging:
-    d_loss_log_scalar, g_loss_log_scalar = helper.get_loggers('/completer');
+    d_loss_logger = helper.get_logger(opt.log_port, 'd_loss')
+    g_loss_logger = helper.get_logger(opt.log_port, 'g_loss')
 
 # Loss function
 adversarial_loss = torch.nn.BCELoss()
@@ -118,8 +120,8 @@ for epoch in range(opt.n_epochs):
 
         if opt.logging:
             train_step = epoch * len(dataloader) + i
-            d_loss_log_scalar.add_record(train_step, float(d_loss))
-            g_loss_log_scalar.add_record(train_step, float(g_loss))
+            d_loss_logger.log(train_step, float(d_loss))
+            g_loss_logger.log(train_step, float(g_loss))
 
         print ("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]" % (epoch, opt.n_epochs, i, len(dataloader),
                                                             d_loss.item(), g_loss.item()))

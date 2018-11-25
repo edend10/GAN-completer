@@ -2,7 +2,7 @@ import os
 import torch
 from torchvision import datasets
 import torchvision.transforms as transforms
-from visualdl import LogWriter
+from torchnet.logger import VisdomPlotLogger
 
 
 def load_dataset(dataset_name, image_size, batch_size):
@@ -41,11 +41,5 @@ def load_dataset(dataset_name, image_size, batch_size):
     return dataloader
 
 
-def get_loggers(log_dir, sync_cycle=100):
-    logger = LogWriter(log_dir, sync_cycle=sync_cycle)
-
-    with logger.mode("train"):
-        d_loss_log_scalar = logger.scalar("scalars/d_loss_log_scalar")
-        g_loss_log_scalar = logger.scalar("scalars/g_loss_log_scalar")
-
-    return d_loss_log_scalar, g_loss_log_scalar
+def get_logger(port, name):
+    return VisdomPlotLogger('line', port=port, opts={'title': '%s' % name})
