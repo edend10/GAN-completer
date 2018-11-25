@@ -45,7 +45,6 @@ def get_loggers(log_dir, sync_cycle=100):
     logger = LogWriter(log_dir, sync_cycle=sync_cycle)
 
     with logger.mode("train"):
-        # create a scalar component called 'scalars/'
         d_loss_log_scalar = logger.scalar("scalars/d_loss_log_scalar")
         g_loss_log_scalar = logger.scalar("scalars/g_loss_log_scalar")
 
