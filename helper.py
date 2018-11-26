@@ -7,8 +7,8 @@ from torchnet.logger import VisdomPlotLogger
 
 def load_dataset(dataset_name, image_size, batch_size):
     path = 'data/' + dataset_name
-    normal_mean = (0.1, 0.1, 0.1)
-    normal_std = (0.1, 0.1, 0.1)
+    normal_mean = (0.5, 0.5, 0.5)
+    normal_std = (0.5, 0.5, 0.5)
     os.makedirs(path, exist_ok=True)
     if dataset_name == 'cifar10':
         dataloader = torch.utils.data.DataLoader(
