@@ -152,7 +152,7 @@ for epoch in range(opt.n_epochs):
             save_image(sample_images, 'images/%d.png' % batches_done, nrow=5, normalize=True)
             if opt.logging:
                 sample_grid = make_grid(sample_images, nrow=5, normalize=True, scale_each=False, padding=2, pad_value=0)
-                viz_image_logger.image(sample_grid, opts=dict(title='batches_done'))
+                viz_image_logger.image(sample_grid, opts=dict(title=batches_done))
 
     # log epoch losses
     avg_d_real_loss /= epoch_batches
