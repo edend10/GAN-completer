@@ -1,11 +1,12 @@
 import argparse
 import os
 import numpy as np
-from torchvision.utils import save_image
+from torchvision.utils import save_image, make_grid
 from torch.autograd import Variable
 import torch
 import helper
 from models import Generator, Discriminator
+from visdom import Visdom
 
 os.makedirs('images', exist_ok=True)
 
@@ -45,8 +46,11 @@ def weights_init_normal(m):
 
 # Logging
 if opt.logging:
-    d_loss_logger = helper.get_logger(opt.log_port, 'd_loss')
+    d_real_loss_logger = helper.get_logger(opt.log_port, 'd_loss_real')
+    d_fake_loss_logger = helper.get_logger(opt.log_port, 'd_loss_fake')
+    d_total_loss_logger = helper.get_logger(opt.log_port, 'd_loss_total')
     g_loss_logger = helper.get_logger(opt.log_port, 'g_loss')
+    viz_image_logger = Visdom(port=opt.log_port, env="images")
 
 # Loss function
 adversarial_loss = torch.nn.BCELoss()
@@ -79,7 +83,9 @@ Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
 for epoch in range(opt.n_epochs):
     avg_g_loss = 0
-    avg_d_loss = 0
+    avg_d_fake_loss = 0
+    avg_d_real_loss = 0
+    avg_d_total_loss = 0
     epoch_batches = 1
     for i, (imgs, _) in enumerate(dataloader):
 
@@ -126,20 +132,30 @@ for epoch in range(opt.n_epochs):
                                                             d_loss.item(), g_loss.item()))
 
         # for logging purposes
-        avg_d_loss += float(d_loss)
+        avg_d_real_loss += float(d_loss)
+        avg_d_fake_loss += float(d_loss)
+        avg_d_total_loss += float(d_loss)
         avg_g_loss += float(g_loss)
         epoch_batches += 1
 
         batches_done = epoch * len(dataloader) + i
         if batches_done % opt.sample_interval == 0:
-            save_image(gen_imgs.data[:25], 'images/%d.png' % batches_done, nrow=5, normalize=True)
+            sample_images = gen_imgs.data[:25]
+            save_image(sample_images, 'images/%d.png' % batches_done, nrow=5, normalize=True)
+            if opt.logging:
+                sample_grid = make_grid(sample_images, nrow=5, normalize=True, scale_each=False, padding=2, pad_value=0)
+                viz_image_logger.image(sample_grid, opts=dict(title='batches_done'))
 
     # log epoch losses
-    avg_d_loss /= epoch_batches
+    avg_d_real_loss /= epoch_batches
+    avg_d_fake_loss /= epoch_batches
+    avg_d_total_loss /= epoch_batches
     avg_g_loss /= epoch_batches
     if opt.logging:
+        d_real_loss_logger.log(epoch, avg_d_real_loss)
+        d_fake_loss_logger.log(epoch, avg_d_fake_loss)
+        d_total_loss_logger.log(epoch, avg_d_total_loss)
         g_loss_logger.log(epoch, avg_g_loss)
-        d_loss_logger.log(epoch, avg_d_loss)
 
     # checkpoint
     torch.save(generator.state_dict(), "g_model")
