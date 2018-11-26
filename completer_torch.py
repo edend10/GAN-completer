@@ -140,8 +140,8 @@ for epoch in range(opt.n_epochs):
                                                             d_loss.item(), g_loss.item()))
 
         # for logging purposes
-        avg_d_real_loss += float(d_loss)
-        avg_d_fake_loss += float(d_loss)
+        avg_d_real_loss += float(real_loss)
+        avg_d_fake_loss += float(fake_loss)
         avg_d_total_loss += float(d_loss)
         avg_g_loss += float(g_loss)
         epoch_batches += 1
