@@ -90,8 +90,12 @@ for epoch in range(opt.n_epochs):
     for i, (imgs, _) in enumerate(dataloader):
 
         # Adversarial ground truths
-        valid = Variable(Tensor(imgs.shape[0], 1).fill_(1.0), requires_grad=False)
-        fake = Variable(Tensor(imgs.shape[0], 1).fill_(0.0), requires_grad=False)
+        # valid = Variable(Tensor(imgs.shape[0], 1).fill_(1.0), requires_grad=False)
+        # fake = Variable(Tensor(imgs.shape[0], 1).fill_(0.0), requires_grad=False)
+
+        # Try label smoothing
+        valid = Variable(Tensor(np.random.uniform(0.7, 1.3, (imgs.shape[0], 1))), requires_grad=False)
+        fake = Variable(Tensor(np.random.uniform(0.0, 0.3, (imgs.shape[0], 1))), requires_grad=False)
 
         # Configure input
         real_imgs = Variable(imgs.type(Tensor))
@@ -135,11 +139,6 @@ for epoch in range(opt.n_epochs):
 
         d_loss.backward()
         optimizer_D.step()
-
-        # now flippity fip
-        real_loss = adversarial_loss(discriminator(real_imgs), fake)
-        fake_loss = adversarial_loss(discriminator(gen_imgs.detach()), valid)
-        d_loss = (real_loss + fake_loss) / 2
 
         d_loss.backward()
         optimizer_D.step()
