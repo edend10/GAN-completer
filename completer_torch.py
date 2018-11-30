@@ -34,11 +34,9 @@ if cuda:
 else:
     print("No Cuda :(")
 
-Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
-
 
 def create_noise(batch_size, latent_dim):
-    return Variable(Tensor(torch.randn((batch_size, latent_dim)).view(-1, latent_dim, 1, 1)))
+    return Variable(Tensor(batch_size, latent_dim).normal_().view(-1, latent_dim, 1, 1))
 
 
 # Logging
@@ -67,6 +65,8 @@ dataloader = helper.load_dataset(opt.dataset, opt.img_size, opt.batch_size)
 # Optimizers
 optimizer_G = torch.optim.Adam(generator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
 optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
+
+Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
 # ----------
 #  Training
