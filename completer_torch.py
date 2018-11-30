@@ -34,14 +34,7 @@ if cuda:
 else:
     print("No Cuda :(")
 
-
-def weights_init_normal(m):
-    classname = m.__class__.__name__
-    if classname.find('Conv') != -1:
-        torch.nn.init.normal_(m.weight.data, 0.0, 0.02)
-    elif classname.find('BatchNorm2d') != -1:
-        torch.nn.init.normal_(m.weight.data, 1.0, 0.02)
-        torch.nn.init.constant_(m.bias.data, 0.0)
+Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
 
 def create_noise(batch_size, latent_dim):
@@ -74,8 +67,6 @@ dataloader = helper.load_dataset(opt.dataset, opt.img_size, opt.batch_size)
 # Optimizers
 optimizer_G = torch.optim.Adam(generator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
 optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
-
-Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
 # ----------
 #  Training
