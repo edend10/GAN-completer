@@ -44,10 +44,6 @@ def weights_init_normal(m):
         torch.nn.init.constant_(m.bias.data, 0.0)
 
 
-def create_noise(batch_size, latent_dim):
-    return Variable(Tensor(torch.randn((batch_size, latent_dim)).view(-1, latent_dim, 1, 1)))
-
-
 # Logging
 if opt.logging:
     d_real_loss_logger = helper.get_logger(opt.log_port, 'd_loss_real')
@@ -69,6 +65,10 @@ if cuda:
     discriminator.cuda()
     adversarial_loss.cuda()
 
+# Initialize weights
+generator.apply(weights_init_normal)
+discriminator.apply(weights_init_normal)
+
 dataloader = helper.load_dataset(opt.dataset, opt.img_size, opt.batch_size)
 
 # Optimizers
@@ -89,36 +89,25 @@ for epoch in range(opt.n_epochs):
     epoch_batches = 1
     for i, (imgs, _) in enumerate(dataloader):
 
-        # Adversarial ground truths with smoothing
+        # Adversarial ground truths
+        # valid = Variable(Tensor(imgs.shape[0], 1).fill_(1.0), requires_grad=False)
+        # fake = Variable(Tensor(imgs.shape[0], 1).fill_(0.0), requires_grad=False)
+
+        # Try label smoothing
         valid = Variable(Tensor(np.random.uniform(0.8, 1.2, (imgs.shape[0], 1))), requires_grad=False)
         fake = Variable(Tensor(np.random.uniform(0.0, 0.15, (imgs.shape[0], 1))), requires_grad=False)
 
         # Configure input
         real_imgs = Variable(imgs.type(Tensor))
 
-        # ---------------------
-        #  Train Discriminator
-        # ---------------------
-
-        # D real loss
-        real_loss = adversarial_loss(discriminator(real_imgs), valid)
-        # D fake loss
-        z = create_noise(imgs.shape[0], opt.latent_dim)
-        gen_imgs = generator(z)
-
-        fake_loss = adversarial_loss(discriminator(gen_imgs), fake)
-        d_loss = real_loss + fake_loss
-
-        discriminator.zero_grad()
-        d_loss.backward()
-        optimizer_D.step()
-
         # -----------------
         #  Train Generator
         # -----------------
 
+        optimizer_G.zero_grad()
+
         # Sample noise as generator input
-        z = create_noise(imgs.shape[0], opt.latent_dim)
+        z = Variable(Tensor(np.random.normal(0, 1, (imgs.shape[0], opt.latent_dim))))
 
         # Generate a batch of images
         gen_imgs = generator(z)
@@ -126,10 +115,22 @@ for epoch in range(opt.n_epochs):
         # Loss measures generator's ability to fool the discriminator
         g_loss = adversarial_loss(discriminator(gen_imgs), valid)
 
-        discriminator.zero_grad()
-        generator.zero_grad()
         g_loss.backward()
         optimizer_G.step()
+
+        # ---------------------
+        #  Train Discriminator
+        # ---------------------
+
+        optimizer_D.zero_grad()
+
+        # Measure discriminator's ability to classify real from generated samples
+        real_loss = adversarial_loss(discriminator(real_imgs), valid)
+        fake_loss = adversarial_loss(discriminator(gen_imgs.detach()), fake)
+        d_loss = (real_loss + fake_loss) / 2
+
+        d_loss.backward()
+        optimizer_D.step()
 
         print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]" % (epoch, opt.n_epochs, i, len(dataloader),
                                                             d_loss.item(), g_loss.item()))
