@@ -72,7 +72,6 @@ class Discriminator(nn.Module):
                     m.bias.data.zero_()
 
     def forward(self, img):
-        print(img.shape)
         output = self.model(img)
 
         return output
