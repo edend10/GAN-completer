@@ -60,8 +60,8 @@ if opt.logging:
 adversarial_loss = torch.nn.BCELoss()
 
 # Initialize generator and discriminator
-generator = Generator(opt.img_size, opt.latent_dim, opt.channels)
-discriminator = Discriminator(opt.img_size, opt.channels)
+generator = Generator(opt.batch_size, opt.latent_dim, opt.channels)
+discriminator = Discriminator(opt.batch_size, opt.channels)
 
 
 if cuda:
