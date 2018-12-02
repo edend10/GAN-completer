@@ -161,7 +161,7 @@ for i, (imgs, _) in enumerate(dataloader):
         optimizer.step()
 
         if opt.debug:
-            print("z: %s" % str(z))
+            print("z grad: %s" % str(z.grad))
 
         print("[Epoch %d/%d] [Batch %d/%d] [Completion loss: %f]" % (i, len(dataloader), j, opt.num_iters,
                                                                          completion_loss.item()))
