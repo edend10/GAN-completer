@@ -37,7 +37,7 @@ else:
 
 
 def create_noise(batch_size, latent_dim):
-    return Variable(Tensor(batch_size, latent_dim).normal_().view(-1, latent_dim, 1, 1))
+    return Variable(Tensor(batch_size, latent_dim, 1, 1).normal_().view(-1, latent_dim, 1, 1))
 
 
 def generate_mask(img_size, num_channels):
@@ -119,7 +119,7 @@ for i, (imgs, _) in enumerate(dataloader):
     imgs = imgs.type(Tensor)
     save_sample_images(imgs, 'originals', i)
 
-    z = create_noise(imgs.shape[0], opt.latent_dim, 1, 1)
+    z = create_noise(imgs.shape[0], opt.latent_dim)
     optimizer = torch.optim.Adam([z], lr=opt.lr)
 
     mask = generate_mask(opt.img_size, opt.channels)
