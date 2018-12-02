@@ -37,7 +37,7 @@ else:
 
 
 def create_noise(batch_size, latent_dim):
-    return Variable(Tensor(batch_size, latent_dim, 1, 1).normal_().view(-1, latent_dim, 1, 1))
+    return Variable(Tensor(batch_size, latent_dim).normal_().view(-1, latent_dim, 1, 1))
 
 
 def generate_mask(img_size, num_channels):
@@ -148,7 +148,7 @@ for i, (imgs, _) in enumerate(dataloader):
         contextual_loss = torch.norm(torch.abs(masked_gen_imgs - masked_imgs), p=1)
 
         d_output = discriminator(completed_imgs)
-        valid = Variable(Tensor(np.random.uniform(0.8, 1.2, (imgs.shape[0], 1))), requires_grad=False)
+        valid = Variable(Tensor(np.random.uniform(0.8, 1.2, (imgs.shape[0], 1, 1, 1))), requires_grad=False)
         perceptual_loss = criteria(d_output, valid)
 
         completion_loss = contextual_loss + opt.percep_coeff * perceptual_loss
