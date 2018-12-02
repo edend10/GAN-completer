@@ -119,7 +119,7 @@ for i, (imgs, _) in enumerate(dataloader):
     imgs = imgs.type(Tensor)
     save_sample_images(imgs, 'originals', i)
 
-    z = create_noise(imgs.shape[0], opt.latent_dim)
+    z = create_noise(imgs.shape[0], opt.latent_dim, 1, 1)
     optimizer = torch.optim.Adam([z], lr=opt.lr)
 
     mask = generate_mask(opt.img_size, opt.channels)
