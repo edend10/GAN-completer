@@ -24,4 +24,4 @@ for i, (imgs, _) in enumerate(dataloader):
     # viz.image(grid, opts=dict(title='Random!', caption='How random.'))
     # viz2.image(grid2, opts=dict(title='Random2!', caption='How random2.'))
 
-    save_image(imgs.data[:25], 'images/dataset_test.png', nrow=5, normalize=True)
+    save_image(imgs.data[:25], 'images/%s_sample.png' % opt.dataset, nrow=5, normalize=True)
