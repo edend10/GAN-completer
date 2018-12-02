@@ -153,6 +153,7 @@ for i, (imgs, _) in enumerate(dataloader):
         completed_imgs = torch.mul(gen_imgs, (1 - mask)) + masked_imgs
 
         if j % opt.sample_interval == 0:
+            save_sample_images(gen_imgs, 'generated', [i, j])
             save_sample_images(completed_imgs, 'completed', [i, j])
             if opt.logging:
                 log_sample_images(completed_imgs, [i, j])
