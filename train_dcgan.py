@@ -5,7 +5,7 @@ from torchvision.utils import save_image, make_grid
 from torch.autograd import Variable
 import torch
 import helper
-from alt_models import Generator, Discriminator
+from models import Generator, Discriminator
 from visdom import Visdom
 
 os.makedirs('images', exist_ok=True)
@@ -35,13 +35,8 @@ else:
     print("No Cuda :(")
 
 
-def weights_init_normal(m):
-    classname = m.__class__.__name__
-    if classname.find('Conv') != -1:
-        torch.nn.init.normal_(m.weight.data, 0.0, 0.02)
-    elif classname.find('BatchNorm2d') != -1:
-        torch.nn.init.normal_(m.weight.data, 1.0, 0.02)
-        torch.nn.init.constant_(m.bias.data, 0.0)
+def create_noise(batch_size, latent_dim):
+    return Variable(Tensor(batch_size, latent_dim).normal_().view(-1, latent_dim, 1, 1))
 
 
 # Logging
@@ -53,21 +48,17 @@ if opt.logging:
     viz_image_logger = Visdom(port=opt.log_port, env="images")
 
 # Loss function
-adversarial_loss = torch.nn.BCELoss()
+criteria = torch.nn.BCELoss()
 
 # Initialize generator and discriminator
-generator = Generator(opt.img_size, opt.batch_size, opt.latent_dim, opt.channels)
-discriminator = Discriminator(opt.img_size, opt.batch_size, opt.channels)
+generator = Generator(opt.batch_size, opt.latent_dim, opt.channels)
+discriminator = Discriminator(opt.batch_size, opt.channels)
 
 
 if cuda:
     generator.cuda()
     discriminator.cuda()
-    adversarial_loss.cuda()
-
-# Initialize weights
-generator.apply(weights_init_normal)
-discriminator.apply(weights_init_normal)
+    criteria.cuda()
 
 dataloader = helper.load_dataset(opt.dataset, opt.img_size, opt.batch_size)
 
@@ -89,52 +80,50 @@ for epoch in range(opt.n_epochs):
     epoch_batches = 1
     for i, (imgs, _) in enumerate(dataloader):
 
-        # Adversarial ground truths
-        # valid = Variable(Tensor(imgs.shape[0], 1).fill_(1.0), requires_grad=False)
-        # fake = Variable(Tensor(imgs.shape[0], 1).fill_(0.0), requires_grad=False)
-
-        # Try label smoothing
+        # Adversarial ground truths with smoothing
         valid = Variable(Tensor(np.random.uniform(0.8, 1.2, (imgs.shape[0], 1))), requires_grad=False)
         fake = Variable(Tensor(np.random.uniform(0.0, 0.15, (imgs.shape[0], 1))), requires_grad=False)
 
         # Configure input
         real_imgs = Variable(imgs.type(Tensor))
 
+        # ---------------------
+        #  Train Discriminator
+        # ---------------------
+
+        # D real loss
+        real_loss = criteria(discriminator(real_imgs), valid)
+        # D fake loss
+        z = create_noise(imgs.shape[0], opt.latent_dim)
+        gen_imgs = generator(z)
+
+        fake_loss = criteria(discriminator(gen_imgs), fake)
+        d_loss = real_loss + fake_loss
+
+        discriminator.zero_grad()
+        d_loss.backward()
+        optimizer_D.step()
+
         # -----------------
         #  Train Generator
         # -----------------
 
-        optimizer_G.zero_grad()
-
         # Sample noise as generator input
-        z = Variable(Tensor(np.random.normal(0, 1, (opt.batch_size, opt.latent_dim))))
+        z = create_noise(imgs.shape[0], opt.latent_dim)
 
         # Generate a batch of images
         gen_imgs = generator(z)
 
         # Loss measures generator's ability to fool the discriminator
-        g_loss = adversarial_loss(discriminator(gen_imgs), valid)
+        g_loss = criteria(discriminator(gen_imgs), valid)
 
+        discriminator.zero_grad()
+        generator.zero_grad()
         g_loss.backward()
         optimizer_G.step()
 
-        # ---------------------
-        #  Train Discriminator
-        # ---------------------
-
-        optimizer_D.zero_grad()
-
-        # Measure discriminator's ability to classify real from generated samples
-        real_loss = adversarial_loss(discriminator(real_imgs), valid)
-        fake_loss = adversarial_loss(discriminator(gen_imgs.detach()), fake)
-        d_loss = (real_loss + fake_loss) / 2
-
-        d_loss.backward()
-        optimizer_D.step()
-
         print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]" % (epoch, opt.n_epochs, i, len(dataloader),
                                                             d_loss.item(), g_loss.item()))
-
         # for logging purposes
         avg_d_real_loss += float(real_loss)
         avg_d_fake_loss += float(fake_loss)
@@ -145,7 +134,7 @@ for epoch in range(opt.n_epochs):
         batches_done = epoch * len(dataloader) + i
         if batches_done % opt.sample_interval == 0:
             sample_images = gen_imgs.data[:25]
-            save_image(sample_images, 'images/%d.png' % batches_done, nrow=5, normalize=True)
+            save_image(sample_images, 'images/training/%d.png' % batches_done, nrow=5, normalize=True)
             if opt.logging:
                 sample_grid = make_grid(sample_images, nrow=5, normalize=True, scale_each=False, padding=2, pad_value=0)
                 viz_image_logger.image(sample_grid, opts=dict(title='%s_b_%d' % (opt.dataset, batches_done)))
@@ -162,5 +151,5 @@ for epoch in range(opt.n_epochs):
         g_loss_logger.log(epoch, avg_g_loss)
 
     # checkpoint
-    torch.save(generator.state_dict(), "g_model")
-    torch.save(discriminator.state_dict(), "d_model")
+    torch.save(generator.state_dict(), "checkpoint/g_model")
+    torch.save(discriminator.state_dict(), "checkpoint/d_model")

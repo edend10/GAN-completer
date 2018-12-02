@@ -5,7 +5,7 @@ class Generator(nn.Module):
     def __init__(self, image_size, ngf, latent_dimension, num_channels):
         super(Generator, self).__init__()
 
-        self.init_size = image_size // 4
+        self.init_size = image_size // 8
         self.l1 = nn.Sequential(nn.Linear(latent_dimension, ngf * 8 * self.init_size**2))
 
         self.ngf = ngf
@@ -51,7 +51,7 @@ class Discriminator(nn.Module):
         )
 
         # The height and width of downsampled image
-        ds_size = image_size // 2**4
+        ds_size = image_size // 8
         self.adv_layer = nn.Sequential( nn.Linear(ndf * 8 * ds_size**2, 1),
                                         nn.Sigmoid())
 

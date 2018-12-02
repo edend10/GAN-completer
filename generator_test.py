@@ -11,7 +11,7 @@ parser.add_argument('--img_size', type=int, default=32, help='size of each image
 parser.add_argument('--latent_dim', type=int, default=100, help='dimensionality of the latent space')
 parser.add_argument('--batch_size', type=int, default=9, help='size of the batches')
 parser.add_argument('--channels', type=int, default=3, help='number of image channels')
-parser.add_argument('--cpu', type=bool, default=True, help='if testing on cpu')
+parser.add_argument('--cpu', type=bool, default=False, help='if testing on cpu')
 opt = parser.parse_args()
 
 cuda = True if torch.cuda.is_available() else False

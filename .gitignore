@@ -9,3 +9,7 @@ tf_completer.py
 .DS_Store
 g_model
 d_model
+models
+checkpoint
+tests.py
+

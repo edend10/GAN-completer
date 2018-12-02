@@ -14,6 +14,7 @@ dataloader = helper.load_dataset(opt.dataset, opt.img_size, opt.batch_size)
 # viz = Visdom(port=8080, env="main")
 # viz2 = Visdom(port=8080, env="images")
 for i, (imgs, _) in enumerate(dataloader):
+    print(1)
     if i == 1:
         break
     grid = make_grid(imgs.data[:25], nrow=5, padding=2, pad_value=0,
