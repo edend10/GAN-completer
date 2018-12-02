@@ -153,6 +153,9 @@ for i, (imgs, _) in enumerate(dataloader):
         completion_loss.backward()
         optimizer.step()
 
+        print("[Epoch %d/%d] [Batch %d/%d] [Completion loss: %f]" % (i, len(dataloader), j, opt.num_iters,
+                                                                         completion_loss.item()))
+
     avg_c_loss /= opt.num_iters
     if opt.logging:
         c_loss_logger.log(i, avg_c_loss)
