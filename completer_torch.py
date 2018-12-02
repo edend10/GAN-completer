@@ -37,7 +37,8 @@ else:
 
 
 def create_noise(batch_size, latent_dim):
-    return Variable(Tensor(batch_size, latent_dim).normal_().view(-1, latent_dim, 1, 1))
+    # return Variable(Tensor(batch_size, latent_dim).normal_().view(-1, latent_dim, 1, 1))
+    return torch.rand(size=[batch_size, latent_dim, 1, 1], dtype=torch.float32, requires_grad=True)
 
 
 def generate_mask(img_size, num_channels):
@@ -163,7 +164,7 @@ for i, (imgs, _) in enumerate(dataloader):
         if opt.debug:
             print("z grad: %s" % str(z.grad))
 
-        print("[Epoch %d/%d] [Batch %d/%d] [Completion loss: %f]" % (i, len(dataloader), j, opt.num_iters,
+        print("[Batch %d/%d] [Iter %d/%d] [Completion loss: %f]" % (i, len(dataloader), j, opt.num_iters,
                                                                          completion_loss.item()))
 
     avg_completion_loss /= opt.num_iters
