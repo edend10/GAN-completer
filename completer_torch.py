@@ -38,7 +38,7 @@ else:
 
 def create_noise(batch_size, latent_dim):
     # return Variable(Tensor(batch_size, latent_dim).normal_().view(-1, latent_dim, 1, 1))
-    return torch.rand(size=[batch_size, latent_dim, 1, 1], dtype=torch.float32, requires_grad=True)
+    return torch.rand(size=[batch_size, latent_dim, 1, 1], dtype=torch.float32, requires_grad=True).type(Tensor)
 
 
 def generate_mask(img_size, num_channels):
