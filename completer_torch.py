@@ -160,7 +160,7 @@ for i, (imgs, _) in enumerate(dataloader):
         completion_loss.backward()
         optimizer.step()
 
-        if opt.debugging:
+        if opt.debug:
             print("z: %s" % str(z))
 
         print("[Epoch %d/%d] [Batch %d/%d] [Completion loss: %f]" % (i, len(dataloader), j, opt.num_iters,
