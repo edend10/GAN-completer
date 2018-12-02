@@ -136,8 +136,11 @@ for i, (imgs, _) in enumerate(dataloader):
     avg_contextual_loss = 0
     avg_perceptual_loss = 0
     for j in range(opt.num_iters):
+        if z.grad is not None:
+            z.zero_grad()
         discriminator.zero_grad()
         generator.zero_grad()
+
         gen_imgs = generator(z)
 
         masked_gen_imgs = torch.mul(gen_imgs, mask).type(Tensor)
@@ -164,9 +167,6 @@ for i, (imgs, _) in enumerate(dataloader):
 
         completion_loss.backward()
         optimizer.step()
-
-        if opt.debug:
-            print("z grad: %s" % str(z.grad))
 
         print("[Batch %d/%d] [Iter %d/%d] [Completion loss: %f]" % (i, len(dataloader), j, opt.num_iters,
                                                                          completion_loss.item()))
