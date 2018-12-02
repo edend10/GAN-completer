@@ -120,7 +120,7 @@ for i, (imgs, _) in enumerate(dataloader):
     optimizer = torch.optim.Adam([z], lr=opt.lr)
 
     mask = generate_mask(opt.img_size, opt.channels)
-    masked_imgs = torch.mul(imgs, mask).type(Tensor)
+    masked_imgs = torch.mul(imgs, mask)
 
     save_sample_images(masked_imgs, 'masked', i)
 
