@@ -86,7 +86,9 @@ def log_sample_images(imgs, img_ids):
 # Logging
 if opt.logging:
     print("Init logging...")
-    c_loss_logger = helper.get_logger(opt.log_port, 'completion_loss')
+    contextual_loss_logger = helper.get_logger(opt.log_port, 'contextual_loss')
+    perceptual_loss_logger = helper.get_logger(opt.log_port, 'perceptual_loss')
+    completion_loss_logger = helper.get_logger(opt.log_port, 'completion_loss')
     viz_image_logger = Visdom(port=opt.log_port, env="images")
 
 # Loss function
@@ -125,7 +127,9 @@ for i, (imgs, _) in enumerate(dataloader):
 
     save_sample_images(masked_imgs, 'masked', i)
 
-    avg_c_loss = 0
+    avg_completion_loss = 0
+    avg_contextual_loss = 0
+    avg_perceptual_loss = 0
     for j in range(opt.num_iters):
         discriminator.zero_grad()
         generator.zero_grad()
@@ -149,17 +153,26 @@ for i, (imgs, _) in enumerate(dataloader):
 
         completion_loss = contextual_loss + opt.percep_coeff * perceptual_loss
 
-        avg_c_loss += float(completion_loss)
+        avg_completion_loss += float(completion_loss)
+        avg_contextual_loss += float(contextual_loss)
+        avg_perceptual_loss += float(perceptual_loss)
 
         completion_loss.backward()
         optimizer.step()
 
+        if opt.debugging:
+            print("z: %s" % str(z))
+
         print("[Epoch %d/%d] [Batch %d/%d] [Completion loss: %f]" % (i, len(dataloader), j, opt.num_iters,
                                                                          completion_loss.item()))
 
-    avg_c_loss /= opt.num_iters
+    avg_completion_loss /= opt.num_iters
+    avg_contextual_loss /= opt.num_iters
+    avg_perceptual_loss /= opt.num_iters
     if opt.logging:
-        c_loss_logger.log(i, avg_c_loss)
+        contextual_loss_logger.log(i, avg_contextual_loss)
+        perceptual_loss_logger.log(i, avg_perceptual_loss)
+        completion_loss_logger.log(i, avg_completion_loss)
 
 
 
