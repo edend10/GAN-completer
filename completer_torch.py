@@ -141,7 +141,7 @@ for i, (imgs, _) in enumerate(dataloader):
     avg_completion_loss = 0
     for j in range(opt.num_iters):
         if z.grad is not None:
-            z.zero_grad()
+            z.grad.data.zero_()
         discriminator.zero_grad()
         generator.zero_grad()
 
