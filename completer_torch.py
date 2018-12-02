@@ -37,8 +37,12 @@ else:
 
 
 def create_noise(batch_size, latent_dim):
+    if cuda:
+        device = 'cuda'
+    else:
+        device = 'cpu'
     # return Variable(Tensor(batch_size, latent_dim).normal_().view(-1, latent_dim, 1, 1))
-    return torch.rand(size=[batch_size, latent_dim, 1, 1], dtype=torch.float32, requires_grad=True).type(Tensor)
+    return torch.rand(size=[batch_size, latent_dim, 1, 1], dtype=torch.float32, requires_grad=True, device=device)
 
 
 def generate_mask(img_size, num_channels):
