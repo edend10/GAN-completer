@@ -114,6 +114,7 @@ Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
 for i, (imgs, _) in enumerate(dataloader):
 
+    imgs = imgs.type(Tensor)
     save_sample_images(imgs, 'originals', i)
 
     z = create_noise(imgs.shape[0], opt.latent_dim)
