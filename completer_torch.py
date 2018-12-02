@@ -84,7 +84,8 @@ def log_sample_images(imgs, img_ids):
     else:
         str_id_path = str(img_ids)
 
-    sample_grid = make_grid(imgs, nrow=5, normalize=True, scale_each=False, padding=2, pad_value=0)
+    sample_images = imgs.data[:25]
+    sample_grid = make_grid(sample_images, nrow=5, normalize=True, scale_each=False, padding=2, pad_value=0)
     viz_image_logger.image(sample_grid, opts=dict(title=str_id_path))
 
 
@@ -121,6 +122,9 @@ Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
 for i, (imgs, _) in enumerate(dataloader):
 
+    if i == 1:
+        break
+
     imgs = imgs.type(Tensor)
     save_sample_images(imgs, 'originals', i)
 
@@ -132,9 +136,9 @@ for i, (imgs, _) in enumerate(dataloader):
 
     save_sample_images(masked_imgs, 'masked', i)
 
-    avg_completion_loss = 0
     avg_contextual_loss = 0
     avg_perceptual_loss = 0
+    avg_completion_loss = 0
     for j in range(opt.num_iters):
         if z.grad is not None:
             z.zero_grad()
@@ -161,23 +165,26 @@ for i, (imgs, _) in enumerate(dataloader):
 
         completion_loss = contextual_loss + opt.percep_coeff * perceptual_loss
 
-        avg_completion_loss += float(completion_loss)
-        avg_contextual_loss += float(contextual_loss)
-        avg_perceptual_loss += float(perceptual_loss)
+        if opt.logging:
+            avg_contextual_loss += float(contextual_loss)
+            avg_perceptual_loss += float(perceptual_loss)
+            avg_completion_loss += float(completion_loss)
+            if j % opt.sample_interval == 0:
+                avg_contextual_loss /= opt.sample_interval
+                avg_perceptual_loss /= opt.sample_interval
+                avg_completion_loss /= opt.sample_interval
+                contextual_loss_logger.log(j, avg_contextual_loss)
+                perceptual_loss_logger.log(j, avg_perceptual_loss)
+                completion_loss_logger.log(j, avg_completion_loss)
+                avg_contextual_loss = 0
+                avg_perceptual_loss = 0
+                avg_completion_loss = 0
 
         completion_loss.backward()
         optimizer.step()
 
         print("[Batch %d/%d] [Iter %d/%d] [Completion loss: %f]" % (i, len(dataloader), j, opt.num_iters,
                                                                          completion_loss.item()))
-
-    avg_completion_loss /= opt.num_iters
-    avg_contextual_loss /= opt.num_iters
-    avg_perceptual_loss /= opt.num_iters
-    if opt.logging:
-        contextual_loss_logger.log(i, avg_contextual_loss)
-        perceptual_loss_logger.log(i, avg_perceptual_loss)
-        completion_loss_logger.log(i, avg_completion_loss)
 
 
 
