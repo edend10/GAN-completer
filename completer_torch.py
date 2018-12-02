@@ -159,7 +159,8 @@ for i, (imgs, _) in enumerate(dataloader):
 
         contextual_loss = torch.norm(torch.abs(masked_gen_imgs - masked_imgs), p=1)
 
-        d_output = discriminator(completed_imgs)
+        d_output = discriminator(gen_imgs)
+        # d_output = discriminator(completed_imgs)
         valid = Variable(Tensor(np.random.uniform(0.8, 1.2, (imgs.shape[0], 1, 1, 1))), requires_grad=False)
         perceptual_loss = criteria(d_output, valid)
 
@@ -169,7 +170,7 @@ for i, (imgs, _) in enumerate(dataloader):
             avg_contextual_loss += float(contextual_loss)
             avg_perceptual_loss += float(perceptual_loss)
             avg_completion_loss += float(completion_loss)
-            if j % opt.sample_interval == 0:
+            if (j+1) % opt.sample_interval == 0:
                 avg_contextual_loss /= opt.sample_interval
                 avg_perceptual_loss /= opt.sample_interval
                 avg_completion_loss /= opt.sample_interval
