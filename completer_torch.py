@@ -128,7 +128,7 @@ for i, (imgs, _) in enumerate(dataloader):
     for j in range(opt.num_iters):
         discriminator.zero_grad()
         generator.zero_grad()
-        gen_imgs = generator(z)
+        gen_imgs = generator(z).type(Tensor)
 
         masked_gen_imgs = torch.mul(gen_imgs, mask).type(Tensor)
 
