@@ -17,10 +17,10 @@ for i, (imgs, _) in enumerate(dataloader):
     print(1)
     if i == 1:
         break
-    grid = make_grid(imgs.data[:25], nrow=5, padding=2, pad_value=0,
-                     normalize=True, scale_each=False)
-    grid2 = make_grid(imgs.data[25:50], nrow=5, padding=2, pad_value=0,
-                     normalize=True, scale_each=False)
+    # grid = make_grid(imgs.data[:25], nrow=5, padding=2, pad_value=0,
+    #                  normalize=True, scale_each=False)
+    # grid2 = make_grid(imgs.data[25:50], nrow=5, padding=2, pad_value=0,
+    #                  normalize=True, scale_each=False)
     # viz.image(grid, opts=dict(title='Random!', caption='How random.'))
     # viz2.image(grid2, opts=dict(title='Random2!', caption='How random2.'))
 
