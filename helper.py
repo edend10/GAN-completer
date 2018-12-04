@@ -49,6 +49,16 @@ def load_dataset(dataset_name, image_size, batch_size):
                                      transforms.Normalize(normal_mean, normal_std)
                                  ])),
             batch_size=batch_size, shuffle=True)
+    elif dataset_name == 'celeba_random_crop':
+        dataloader = torch.utils.data.DataLoader(
+            datasets.ImageFolder('data/celeba',
+                                 transform=transforms.Compose([
+                                     transforms.RandomCrop(150),
+                                     transforms.Resize(image_size),
+                                     transforms.ToTensor(),
+                                     transforms.Normalize(normal_mean, normal_std)
+                                 ])),
+            batch_size=batch_size, shuffle=True)
     elif dataset_name == 'celeba_test':
         dataloader = torch.utils.data.DataLoader(
             datasets.ImageFolder(path,
