@@ -27,6 +27,7 @@ parser.add_argument('--dataset', type=str, default='cifar10', help='dataset name
 parser.add_argument('--logging', type=bool, default=False, help='log or not')
 parser.add_argument('--log_port', type=int, default=8080, help='visdom log panel port')
 parser.add_argument('--debug', type=bool, default=False, help='debug mode')
+parser.add_argument('--blend', type=bool, default=False, help='blend after completion?')
 opt = parser.parse_args()
 print(opt)
 
@@ -47,11 +48,10 @@ def create_noise(batch_size, latent_dim):
     return torch.rand(size=[batch_size, latent_dim, 1, 1], dtype=torch.float32, requires_grad=True, device=device)
 
 
-def generate_mask(img_size, num_channels):
+def generate_center_mask(img_size, num_channels, center_scale=0.3):
     img_shape = (num_channels, img_size, img_size)
 
     mask = torch.ones(size=img_shape).type(Tensor)
-    center_scale = 0.3
     low = int(img_size * center_scale)
     high = int(img_size * (1 - center_scale))
     mask[:, low:high, low:high] = 0.0
@@ -121,7 +121,8 @@ Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 # ----------
 #  Completion
 # ----------
-
+masked_imgs = None
+generated_fills = None
 for i, (imgs, _) in enumerate(dataloader):
 
     if i == 1:
@@ -133,8 +134,9 @@ for i, (imgs, _) in enumerate(dataloader):
     z = create_noise(imgs.shape[0], opt.latent_dim)
     optimizer = torch.optim.Adam([z], lr=opt.lr, betas=(opt.b1, opt.b2))
 
-    mask = generate_mask(opt.img_size, opt.channels)
-    masked_imgs = torch.mul(imgs, mask).type(Tensor)
+    img_mask = generate_center_mask(opt.img_size, opt.channels)
+    fill_mask = generate_center_mask(opt.img_size, opt.channels, 0.25)
+    masked_imgs = torch.mul(imgs, img_mask).type(Tensor)
 
     save_sample_images(masked_imgs, 'masked', i)
 
@@ -149,10 +151,11 @@ for i, (imgs, _) in enumerate(dataloader):
 
         gen_imgs = generator(z)
 
-        masked_gen_imgs = torch.mul(gen_imgs, mask).type(Tensor)
+        masked_gen_imgs = torch.mul(gen_imgs, img_mask).type(Tensor)
 
         # TODO: add smoothing here?
-        completed_imgs = torch.mul(gen_imgs, (1 - mask)) + masked_imgs
+        generated_fills = torch.mul(gen_imgs, (1 - fill_mask))
+        completed_imgs = generated_fills + masked_imgs
 
         if j % opt.sample_interval == 0:
             save_sample_images(gen_imgs, 'generated', [i, j])
@@ -190,7 +193,9 @@ for i, (imgs, _) in enumerate(dataloader):
         print("[Batch %d/%d] [Iter %d/%d] [Completion loss: %f]" % (i, len(dataloader), j, opt.num_iters,
                                                                          completion_loss.item()))
 
-
-
-
-
+    # ----------
+    #  Blending
+    # ----------
+    if (opt.blend):
+        blended_batch = helper.blend_batch(masked_imgs[:25], generated_fills[:25])
+        save_sample_images(blended_batch, 'blended', i)
