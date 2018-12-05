@@ -122,7 +122,7 @@ Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 #  Completion
 # ----------
 masked_imgs = None
-generated_fills = None
+generated_fills_for_blend = None
 for i, (imgs, _) in enumerate(dataloader):
 
     if i == 1:
@@ -134,7 +134,7 @@ for i, (imgs, _) in enumerate(dataloader):
     z = create_noise(imgs.shape[0], opt.latent_dim)
     optimizer = torch.optim.Adam([z], lr=opt.lr, betas=(opt.b1, opt.b2))
 
-    img_mask = generate_center_mask(opt.img_size, opt.channels)
+    img_mask = generate_center_mask(opt.img_size, opt.channels, 0.3)
     fill_mask = generate_center_mask(opt.img_size, opt.channels, 0.25)
     masked_imgs = torch.mul(imgs, img_mask).type(Tensor)
 
@@ -153,8 +153,8 @@ for i, (imgs, _) in enumerate(dataloader):
 
         masked_gen_imgs = torch.mul(gen_imgs, img_mask).type(Tensor)
 
-        # TODO: add smoothing here?
-        generated_fills = torch.mul(gen_imgs, (1 - fill_mask))
+        generated_fills_for_blend = torch.mul(gen_imgs, (1 - fill_mask))
+        generated_fills = torch.mul(gen_imgs, (1 - img_mask))
         completed_imgs = generated_fills + masked_imgs
 
         if j % opt.sample_interval == 0:
@@ -197,5 +197,5 @@ for i, (imgs, _) in enumerate(dataloader):
     #  Blending
     # ----------
     if (opt.blend):
-        blended_batch = helper.blend_batch(masked_imgs[:25], generated_fills[:25])
+        blended_batch = helper.blend_batch(masked_imgs[:25], generated_fills_for_blend[:25])
         save_sample_images(blended_batch, 'blended', i)
