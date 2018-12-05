@@ -135,7 +135,7 @@ def alpha_blend_img(img, fill):
 
 
 def blend_batch(masked_imgs, generated_fills):
-    return [alpha_blend_img(np.array(img), np.array(fill)) for (img, fill) in zip(masked_imgs, generated_fills)]
+    return [alpha_blend_img(img.detach().numpy(), fill.detach().numpy()) for (img, fill) in zip(masked_imgs, generated_fills)]
 
 
 def binary_mask(img):
