@@ -7,6 +7,7 @@ import cv2
 from scipy import ndimage
 import numpy as np
 from scipy.ndimage.morphology import distance_transform_edt as euc_dist
+from PIL import Image
 
 
 def load_dataset(dataset_name, image_size, batch_size):
@@ -101,13 +102,15 @@ def get_logger(port, name):
     return VisdomPlotLogger('line', port=port, opts={'title': '%s' % name})
 
 
+def alpha_blend_img(img, fill, Tensor):
+    img = to_np(img)
+    fill = to_np(fill)
 
-def alpha_blend_img(img, fill):
-    img = img.astype('uint8')
-    fill = fill.astype('uint8')
-
-    img = np.einsum('kij->ijk', img)
-    fill = np.einsum('kij->ijk', fill)
+    # img = img.astype('uint8')
+    # fill = fill.astype('uint8')
+    #
+    # img = np.einsum('kij->ijk', img)
+    # fill = np.einsum('kij->ijk', fill)
 
     bin_img = binary_mask(img)
     bin_fill = binary_mask(fill)
@@ -131,11 +134,18 @@ def alpha_blend_img(img, fill):
                 blended[i][j][1] = np.uint8((w1 * img[i][j][1] + w2 * fill[i][j][1]) / (w1 + w2))
                 blended[i][j][2] = np.uint8((w1 * img[i][j][2] + w2 * fill[i][j][2]) / (w1 + w2))
 
+    if Tensor is not None:
+        blended = np.einsum('ijk->kij', blended)
+        blended = Tensor(blended)
+
     return blended
 
 
-def blend_batch(masked_imgs, generated_fills):
-    return [alpha_blend_img(img.cpu().detach().numpy(), fill.cpu().detach().numpy()) for (img, fill) in zip(masked_imgs, generated_fills)]
+def blend_batch(masked_imgs, generated_fills, Tensor=None):
+    ret = [alpha_blend_img(img, fill, Tensor) for (img, fill) in zip(masked_imgs, generated_fills)]
+    if Tensor is not None:
+        ret = torch.stack(ret)
+    return ret
 
 
 def binary_mask(img):
@@ -173,3 +183,18 @@ def crop_roi(img):
     cropped_img = img[x_min:x_max + 1, y_min:y_max + 1, :]
     return cropped_img.astype('uint8')
 
+
+def to_np(tensor):
+    tensor = tensor.clone()  # avoid modifying tensor in-place
+
+    def norm_ip(img, min, max):
+        img.clamp_(min=min, max=max)
+        img.add_(-min).div_(max - min + 1e-5)
+
+    def norm_range(t):
+            norm_ip(t, float(t.min()), float(t.max()))
+
+    norm_range(tensor)
+
+    ndarr = tensor.mul(255).clamp(0, 255).byte().permute(1, 2, 0).cpu().numpy()
+    return ndarr
