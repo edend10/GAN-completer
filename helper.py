@@ -105,7 +105,6 @@ def get_logger(port, name):
 def alpha_blend_img(img, fill, Tensor):
     img = to_np(img)
     fill = to_np(fill)
-
     # img = img.astype('uint8')
     # fill = fill.astype('uint8')
     #

@@ -54,7 +54,7 @@ def generate_center_mask(img_size, num_channels, center_scale=0.3):
     mask = torch.ones(size=img_shape).type(Tensor)
     low = int(img_size * center_scale)
     high = int(img_size * (1 - center_scale))
-    mask[:, low:high, low:high] = 0.0
+    mask[:, low:high, low:high] = 0
     return mask
 
 
@@ -89,6 +89,10 @@ def log_sample_images(imgs, img_ids):
     sample_images = imgs.data[:25]
     sample_grid = make_grid(sample_images, nrow=5, normalize=True, scale_each=False, padding=2, pad_value=0)
     viz_image_logger.image(sample_grid, opts=dict(title=str_id_path))
+
+
+def apply_mask(img, mask):
+    return torch.mul(img+1, mask).type(Tensor) - 1
 
 
 # Logging
@@ -136,7 +140,7 @@ for i, (imgs, _) in enumerate(dataloader):
 
     img_mask = generate_center_mask(opt.img_size, opt.channels, 0.3)
     fill_mask = generate_center_mask(opt.img_size, opt.channels, 0.25)
-    masked_imgs = torch.mul(imgs, img_mask).type(Tensor)
+    masked_imgs = apply_mask(imgs, img_mask)
 
     save_sample_images(masked_imgs, 'masked', i)
 
@@ -151,10 +155,10 @@ for i, (imgs, _) in enumerate(dataloader):
 
         gen_imgs = generator(z)
 
-        masked_gen_imgs = torch.mul(gen_imgs, img_mask).type(Tensor)
+        masked_gen_imgs = apply_mask(gen_imgs, img_mask)
 
-        generated_fills_for_blend = torch.mul(gen_imgs, (1 - fill_mask))
-        generated_fills = torch.mul(gen_imgs, (1 - img_mask))
+        generated_fills_for_blend = apply_mask(gen_imgs, 1 - fill_mask)
+        generated_fills = apply_mask(gen_imgs, 1 - img_mask)
         completed_imgs = generated_fills + masked_imgs
 
         if j % opt.sample_interval == 0:
@@ -197,8 +201,10 @@ for i, (imgs, _) in enumerate(dataloader):
     #  Blending
     # ----------
     if (opt.blend):
-        log_sample_images(masked_imgs, "masked")
-        log_sample_images(generated_fills_for_blend, "fills")
+        if opt.logging:
+            log_sample_images(masked_imgs, "masked")
+            log_sample_images(generated_fills_for_blend, "fills")
         blended_batch = helper.blend_batch(masked_imgs[:25], generated_fills_for_blend[:25], Tensor)
-        log_sample_images(blended_batch, i)
+        if opt.logging:
+            log_sample_images(blended_batch, i)
         save_sample_images(blended_batch, 'blended', i)
