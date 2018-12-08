@@ -22,7 +22,6 @@ parser.add_argument('--n_cpu', type=int, default=8, help='number of cpu threads 
 parser.add_argument('--latent_dim', type=int, default=100, help='dimensionality of the latent space')
 parser.add_argument('--img_size', type=int, default=32, help='size of each image dimension')
 parser.add_argument('--channels', type=int, default=3, help='number of image channels')
-parser.add_argument('--sample_interval', type=int, default=100, help='interval between image sampling')
 parser.add_argument('--dataset', type=str, default='cifar10', help='dataset name')
 parser.add_argument('--logging', type=bool, default=False, help='log or not')
 parser.add_argument('--log_port', type=int, default=8080, help='visdom log panel port')
@@ -126,6 +125,8 @@ Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 # ----------
 masked_imgs = None
 generated_fills_for_blend = None
+gen_imgs = None
+completed_imgs = None
 for i, (imgs, _) in enumerate(dataloader):
 
     if i == 10:
@@ -163,7 +164,7 @@ for i, (imgs, _) in enumerate(dataloader):
         contextual_loss = torch.norm(torch.abs(masked_gen_imgs - masked_imgs), p=1)
 
         d_output = discriminator(gen_imgs)
-        # d_output = discriminator(completed_imgs)
+
         valid = Variable(Tensor(np.random.uniform(0.8, 1.2, (imgs.shape[0], 1, 1, 1))), requires_grad=False)
         perceptual_loss = criteria(d_output, valid)
 
@@ -175,10 +176,10 @@ for i, (imgs, _) in enumerate(dataloader):
         print("[Batch %d/%d] [Iter %d/%d] [Completion loss: %f]" % (i, len(dataloader), j, opt.num_iters,
                                                                          completion_loss.item()))
 
-        save_sample_images(gen_imgs, 'generated', i)
-        save_sample_images(completed_imgs, 'completed', i)
-        if opt.logging:
-            log_sample_images(completed_imgs, i)
+    save_sample_images(gen_imgs, 'generated', i)
+    save_sample_images(completed_imgs, 'completed', i)
+    if opt.logging:
+        log_sample_images(completed_imgs, i)
 
     # ----------
     #  Blending
@@ -196,8 +197,9 @@ for i, (imgs, _) in enumerate(dataloader):
     #  Evaluation
     # ----------
     d_eval = discriminator(blended_batch)
+    print(d_eval)
     if opt.logging:
-        d_eval_logger.log(i, d_eval)
+        # d_eval_logger.log(i, d_eval)
 
 
 
