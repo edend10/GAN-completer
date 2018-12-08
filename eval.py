@@ -197,7 +197,7 @@ for i, (imgs, _) in enumerate(dataloader):
     # ----------
     completed_d_output = discriminator(blended_batch)
     d_eval = criteria(completed_d_output, eval_valid)
-    print("---> [Batch %d/%d] [eval: %f]" % (i, len(dataloader), float(d_eval))
+    print("---> [Batch %d/%d] [eval: %f]" % (i, len(dataloader), float(d_eval)))
     avg_d_eval += float(d_eval)
     if opt.logging:
         d_eval_logger.log(i, float(d_eval))
