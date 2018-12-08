@@ -127,7 +127,7 @@ masked_imgs = None
 generated_fills_for_blend = None
 gen_imgs = None
 completed_imgs = None
-eval_valid = Variable(Tensor(np.ones([opt.batch_size, 1, 1, 1]), requires_grad=False))
+eval_valid = Variable(Tensor(np.ones([opt.batch_size, 1, 1, 1])), requires_grad=False)
 for i, (imgs, _) in enumerate(dataloader):
 
     if i == 10:
@@ -145,9 +145,6 @@ for i, (imgs, _) in enumerate(dataloader):
 
     save_sample_images(masked_imgs, 'masked', i)
 
-    avg_contextual_loss = 0
-    avg_perceptual_loss = 0
-    avg_completion_loss = 0
     for j in range(opt.num_iters):
         if z.grad is not None:
             z.grad.data.zero_()
