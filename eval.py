@@ -198,8 +198,8 @@ for i, (imgs, _) in enumerate(dataloader):
     # ----------
     d_eval = discriminator(blended_batch)
     print(d_eval)
-    if opt.logging:
-        # d_eval_logger.log(i, d_eval)
+    # if opt.logging:
+    #     d_eval_logger.log(i, d_eval)
 
 
 
