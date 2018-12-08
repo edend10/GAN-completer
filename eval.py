@@ -27,7 +27,7 @@ parser.add_argument('--logging', type=bool, default=False, help='log or not')
 parser.add_argument('--log_port', type=int, default=8080, help='visdom log panel port')
 parser.add_argument('--debug', type=bool, default=False, help='debug mode')
 parser.add_argument('--blend', type=bool, default=False, help='blend after completion?')
-parser.add_argument('--mask', type=str, default='center', help='center/random mask')
+parser.add_argument('--num_batches', type=int, default=10, help='number of batches to evaluate')
 opt = parser.parse_args()
 print(opt)
 
@@ -128,9 +128,10 @@ generated_fills_for_blend = None
 gen_imgs = None
 completed_imgs = None
 eval_valid = Variable(Tensor(np.ones([opt.batch_size, 1, 1, 1])), requires_grad=False)
+avg_d_eval = 0
 for i, (imgs, _) in enumerate(dataloader):
 
-    if i == 10:
+    if i == opt.num_batches:
         break
 
     imgs = imgs.type(Tensor)
@@ -196,9 +197,13 @@ for i, (imgs, _) in enumerate(dataloader):
     # ----------
     completed_d_output = discriminator(blended_batch)
     d_eval = criteria(completed_d_output, eval_valid)
-    print("---> [Batch %d/%d] [eval: %f]" % (i, len(dataloader), d_eval.item()))
+    print("---> [Batch %d/%d] [eval: %f]" % (i, len(dataloader), float(d_eval))
+    avg_d_eval += float(d_eval)
     if opt.logging:
         d_eval_logger.log(i, float(d_eval))
+
+avg_d_eval /= opt.num_batches
+print ("Avg eval: %f" % avg_d_eval)
 
 
 
