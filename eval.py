@@ -127,6 +127,7 @@ masked_imgs = None
 generated_fills_for_blend = None
 gen_imgs = None
 completed_imgs = None
+eval_valid = Variable(Tensor(np.ones([opt.batch_size, 1, 1, 1]), requires_grad=False))
 for i, (imgs, _) in enumerate(dataloader):
 
     if i == 10:
@@ -196,7 +197,8 @@ for i, (imgs, _) in enumerate(dataloader):
     # ----------
     #  Evaluation
     # ----------
-    d_eval = discriminator(blended_batch)
+    completed_d_output = discriminator(blended_batch)
+    d_eval = criteria(completed_d_output, eval_valid)
     print(d_eval)
     # if opt.logging:
     #     d_eval_logger.log(i, d_eval)

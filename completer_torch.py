@@ -170,7 +170,7 @@ for i, (imgs, _) in enumerate(dataloader):
         contextual_loss = torch.norm(torch.abs(masked_gen_imgs - masked_imgs), p=1)
 
         d_output = discriminator(gen_imgs)
-        # d_output = discriminator(completed_imgs)
+
         valid = Variable(Tensor(np.random.uniform(0.8, 1.2, (imgs.shape[0], 1, 1, 1))), requires_grad=False)
         perceptual_loss = criteria(d_output, valid)
 
