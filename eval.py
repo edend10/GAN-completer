@@ -28,6 +28,7 @@ parser.add_argument('--logging', type=bool, default=False, help='log or not')
 parser.add_argument('--log_port', type=int, default=8080, help='visdom log panel port')
 parser.add_argument('--debug', type=bool, default=False, help='debug mode')
 parser.add_argument('--blend', type=bool, default=False, help='blend after completion?')
+parser.add_argument('--mask', type=str, default='center', help='center/random mask')
 opt = parser.parse_args()
 print(opt)
 
@@ -98,9 +99,7 @@ def apply_mask(img, mask):
 # Logging
 if opt.logging:
     print("Init logging...")
-    contextual_loss_logger = helper.get_logger(opt.log_port, 'contextual_loss')
-    perceptual_loss_logger = helper.get_logger(opt.log_port, 'perceptual_loss')
-    completion_loss_logger = helper.get_logger(opt.log_port, 'completion_loss')
+    d_eval_logger = helper.get_logger(opt.log_port, 'd_eval')
     viz_image_logger = Visdom(port=opt.log_port, env="images")
 
 # Loss function
@@ -129,7 +128,7 @@ masked_imgs = None
 generated_fills_for_blend = None
 for i, (imgs, _) in enumerate(dataloader):
 
-    if i == 1:
+    if i == 10:
         break
 
     imgs = imgs.type(Tensor)
@@ -161,12 +160,6 @@ for i, (imgs, _) in enumerate(dataloader):
         generated_fills = apply_mask(gen_imgs, 1 - img_mask)
         completed_imgs = generated_fills + masked_imgs
 
-        if j % opt.sample_interval == 0:
-            save_sample_images(gen_imgs, 'generated', [i, j])
-            save_sample_images(completed_imgs, 'completed', [i, j])
-            if opt.logging:
-                log_sample_images(completed_imgs, [i, j])
-
         contextual_loss = torch.norm(torch.abs(masked_gen_imgs - masked_imgs), p=1)
 
         d_output = discriminator(gen_imgs)
@@ -176,36 +169,38 @@ for i, (imgs, _) in enumerate(dataloader):
 
         completion_loss = contextual_loss + opt.percep_coeff * perceptual_loss
 
-        if opt.logging:
-            avg_contextual_loss += float(contextual_loss)
-            avg_perceptual_loss += float(perceptual_loss)
-            avg_completion_loss += float(completion_loss)
-            if (j+1) % opt.sample_interval == 0:
-                avg_contextual_loss /= opt.sample_interval
-                avg_perceptual_loss /= opt.sample_interval
-                avg_completion_loss /= opt.sample_interval
-                contextual_loss_logger.log(j, avg_contextual_loss)
-                perceptual_loss_logger.log(j, avg_perceptual_loss)
-                completion_loss_logger.log(j, avg_completion_loss)
-                avg_contextual_loss = 0
-                avg_perceptual_loss = 0
-                avg_completion_loss = 0
-
         completion_loss.backward()
         optimizer.step()
 
         print("[Batch %d/%d] [Iter %d/%d] [Completion loss: %f]" % (i, len(dataloader), j, opt.num_iters,
                                                                          completion_loss.item()))
 
+        save_sample_images(gen_imgs, 'generated', i)
+        save_sample_images(completed_imgs, 'completed', i)
+        if opt.logging:
+            log_sample_images(completed_imgs, i)
+
     # ----------
     #  Blending
     # ----------
-    if (opt.blend):
-        if opt.logging:
-            log_sample_images(masked_imgs, "masked")
-            log_sample_images(generated_fills_for_blend, "fills")
-        blended_batch = helper.blend_batch(masked_imgs[:25], generated_fills_for_blend[:25], Tensor)
-        if opt.logging:
-            log_sample_images(blended_batch, i)
-        save_sample_images(blended_batch, 'blended', i)
+    if opt.logging:
+        log_sample_images(masked_imgs, "masked")
+        log_sample_images(generated_fills_for_blend, "fills")
+    blended_batch = helper.blend_batch(masked_imgs, generated_fills_for_blend, Tensor)
+    blended_batch_sample = blended_batch[:25]
+    if opt.logging:
+        log_sample_images(blended_batch_sample, i)
+    save_sample_images(blended_batch_sample, 'blended', i)
+
+    # ----------
+    #  Evaluation
+    # ----------
+    d_eval = discriminator(blended_batch)
+    if opt.logging:
+        d_eval_logger.log(i, d_eval)
+
+
+
+
+
 
