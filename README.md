@@ -21,7 +21,7 @@ When doing the completion, we keep track of both a "perceptual" and a "contextua
 ## Results
 | Original                  | Masked                 | Generated                  | Completed                 | Blended                 |
 | :-----------------------: |:----------------------:| :-----------------------:  | :-----------------------: | :--------------------:  |
-| ![](assets/original.png)  | ![](assets/masked.png) | ![](assets/genereated.png) | ![](assets/completed.png) | ![](assets/blended.png) |
+| ![](assets/original.png)  | ![](assets/masked.png) | ![](assets/generated.png) | ![](assets/completed.png) | ![](assets/blended.png) |
 
 
 ## Dependencies
