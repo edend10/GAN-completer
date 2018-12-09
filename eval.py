@@ -131,8 +131,8 @@ for i, (imgs, _) in enumerate(dataloader):
     blended_batch = helper.blend_batch(masked_imgs, generated_fills_for_blend, Tensor)
     blended_batch_sample = blended_batch[:25]
     if opt.logging:
-        log_sample_images(blended_batch_sample, i)
-    save_sample_images(viz_image_logger, blended_batch_sample, 'blended', i)
+        log_sample_images(viz_image_logger, blended_batch_sample, i)
+    save_sample_images(blended_batch_sample, 'blended', i)
 
     # ----------
     #  Evaluation
