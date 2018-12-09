@@ -117,16 +117,6 @@ def load_dataset(dataset_name, image_size, batch_size):
                                      transforms.Normalize(normal_mean, normal_std)
                                  ])),
             batch_size=batch_size, shuffle=True)
-    elif dataset_name == 'dogs':
-        dataloader = torch.utils.data.DataLoader(
-            datasets.ImageFolder(path,
-                                 transform=transforms.Compose([
-                                     transforms.Resize(image_size),
-                                     transforms.CenterCrop(image_size),
-                                     transforms.ToTensor(),
-                                     transforms.Normalize(normal_mean, normal_std)
-                                 ])),
-            batch_size=batch_size, shuffle=True)
 
     return dataloader
 

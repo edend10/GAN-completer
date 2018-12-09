@@ -41,7 +41,8 @@ cuda = is_cuda(opt.use_cpu)
 # Logging init
 if opt.logging:
     print("Init logging...")
-    d_eval_logger = helper.get_logger(opt.log_port, 'd_eval')
+    d_eval_logger_original = helper.get_logger(opt.log_port, 'd_eval_original')
+    d_eval_logger_completed = helper.get_logger(opt.log_port, 'd_eval_completed')
     viz_image_logger = Visdom(port=opt.log_port, env="images")
 
 # Loss function
@@ -73,7 +74,8 @@ generated_fills_for_blend = None
 gen_imgs = None
 completed_imgs = None
 eval_valid = Variable(Tensor(np.ones([opt.batch_size, 1, 1, 1])), requires_grad=False)
-avg_d_eval = 0
+avg_d_eval_original = 0
+avg_d_eval_completed = 0
 for i, (imgs, _) in enumerate(dataloader):
 
     if i == num_batches:
@@ -138,15 +140,26 @@ for i, (imgs, _) in enumerate(dataloader):
     #  Evaluation
     # ----------
     discriminator.zero_grad()
-    completed_d_output = discriminator(blended_batch)
-    d_eval = criteria(completed_d_output, eval_valid)
-    print("---> [Batch %d/%d] [eval: %f]" % (i, num_batches, float(d_eval)))
-    avg_d_eval += float(d_eval)
+    d_output = discriminator(imgs)
+    d_eval = criteria(d_output, eval_valid)
+    print("---> [Batch %d/%d] [eval originals: %f]" % (i, num_batches, float(d_eval)))
+    avg_d_eval_original += float(d_eval)
     if opt.logging:
-        d_eval_logger.log(i, float(d_eval))
+        d_eval_logger_original.log(i, float(d_eval))
 
-avg_d_eval /= opt.num_batches
-print("Avg eval: %f" % avg_d_eval)
+    discriminator.zero_grad()
+    d_output = discriminator(blended_batch)
+    d_eval = criteria(d_output, eval_valid)
+    print("---> [Batch %d/%d] [eval completed: %f]" % (i, num_batches, float(d_eval)))
+    avg_d_eval_completed += float(d_eval)
+    if opt.logging:
+        d_eval_logger_completed.log(i, float(d_eval))
+
+avg_d_eval_original /= opt.num_batches
+print("Avg eval originals: %f" % avg_d_eval_original)
+
+avg_d_eval_completed /= opt.num_batches
+print("Avg eval completed: %f" % avg_d_eval_completed)
 
 
 

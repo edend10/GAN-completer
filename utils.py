@@ -28,9 +28,9 @@ def generate_center_mask(Tensor, img_size, num_channels, center_scale=0.3):
 
 
 def generate_random_mask(Tensor, img_size, num_channels, mask_threshold=0.2):
-    mask = np.ones([img_size, img_size, num_channels])
-    mask[np.random.random([img_size, img_size]) < mask_threshold] = 0.0
-    return mask
+    mask = np.ones([num_channels, img_size, img_size])
+    mask[:, np.random.random([img_size, img_size]) < mask_threshold] = 0.0
+    return Tensor(mask)
 
 
 # Load NN model
