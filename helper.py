@@ -7,7 +7,6 @@ import cv2
 from scipy import ndimage
 import numpy as np
 from scipy.ndimage.morphology import distance_transform_edt as euc_dist
-from PIL import Image
 
 
 def load_dataset(dataset_name, image_size, batch_size):
@@ -24,20 +23,9 @@ def load_dataset(dataset_name, image_size, batch_size):
                                    transforms.Normalize(normal_mean, normal_std)
                                ])),
             batch_size=batch_size, shuffle=True)
-
     elif dataset_name == 'mnist':
         dataloader = torch.utils.data.DataLoader(
             datasets.MNIST(path, train=True, download=True,
-                           transform=transforms.Compose([
-                               transforms.Resize(image_size),
-                               transforms.ToTensor(),
-                               transforms.Normalize(normal_mean, normal_std)
-                           ])),
-            batch_size=batch_size, shuffle=True)
-
-    elif dataset_name == 'stl10':
-        dataloader = torch.utils.data.DataLoader(
-            datasets.STL10(path, 'train', download=True,
                            transform=transforms.Compose([
                                transforms.Resize(image_size),
                                transforms.ToTensor(),

@@ -1,12 +1,12 @@
 import argparse
 import os
 import numpy as np
-from torchvision.utils import save_image, make_grid
 from torch.autograd import Variable
 import torch
 import helper
 from models import Generator, Discriminator
 from visdom import Visdom
+from utils import is_cuda, create_noise, generate_center_mask, load_model, save_sample_images, log_sample_images, apply_mask
 
 os.makedirs('images', exist_ok=True)
 
@@ -18,7 +18,6 @@ parser.add_argument('--batch_size', type=int, default=64, help='size of the batc
 parser.add_argument('--lr', type=float, default=0.0002, help='adam: learning rate')
 parser.add_argument('--b1', type=float, default=0.5, help='adam: decay of first order momentum of gradient')
 parser.add_argument('--b2', type=float, default=0.999, help='adam: decay of first order momentum of gradient')
-parser.add_argument('--n_cpu', type=int, default=8, help='number of cpu threads to use during batch generation')
 parser.add_argument('--latent_dim', type=int, default=100, help='dimensionality of the latent space')
 parser.add_argument('--img_size', type=int, default=32, help='size of each image dimension')
 parser.add_argument('--channels', type=int, default=3, help='number of image channels')
@@ -26,74 +25,13 @@ parser.add_argument('--sample_interval', type=int, default=100, help='interval b
 parser.add_argument('--dataset', type=str, default='cifar10', help='dataset name')
 parser.add_argument('--logging', type=bool, default=False, help='log or not')
 parser.add_argument('--log_port', type=int, default=8080, help='visdom log panel port')
-parser.add_argument('--debug', type=bool, default=False, help='debug mode')
 parser.add_argument('--blend', type=bool, default=False, help='blend after completion?')
+parser.add_argument('--num_batches', type=int, default=1, help='number of batches to evaluate')
+
 opt = parser.parse_args()
 print(opt)
 
-cuda = True if torch.cuda.is_available() and not opt.use_cpu else False
-
-if cuda:
-    print("Using Cuda!")
-else:
-    print("No Cuda :(")
-
-
-def create_noise(batch_size, latent_dim):
-    if cuda:
-        device = 'cuda'
-    else:
-        device = 'cpu'
-    # return Variable(Tensor(batch_size, latent_dim).normal_().view(-1, latent_dim, 1, 1))
-    return torch.rand(size=[batch_size, latent_dim, 1, 1], dtype=torch.float32, requires_grad=True, device=device)
-
-
-def generate_center_mask(img_size, num_channels, center_scale=0.3):
-    img_shape = (num_channels, img_size, img_size)
-
-    mask = torch.ones(size=img_shape).type(Tensor)
-    low = int(img_size * center_scale)
-    high = int(img_size * (1 - center_scale))
-    mask[:, low:high, low:high] = 0
-    return mask
-
-
-def load_model(model, model_name):
-    print("Loading model: `%s`" % model_name)
-    model_path = 'models/%s_model' % model_name
-    if not cuda:
-        state_dict = torch.load(model_path, map_location='cpu')
-    else:
-        state_dict = torch.load(model_path)
-    model.load_state_dict(state_dict)
-
-
-def save_sample_images(imgs, sample_dir, img_ids):
-    if type(img_ids) == list:
-        str_id_path = '_'.join([str(i) for i in img_ids])
-    else:
-        str_id_path = str(img_ids)
-
-    if opt.debug:
-        print("Saving images: `%s`" % sample_dir)
-    sample_images = imgs.data[:25]
-    save_image(sample_images, 'images/completion/%s/%s.png' % (sample_dir, str_id_path), nrow=5, normalize=True)
-
-
-def log_sample_images(imgs, img_ids):
-    if type(img_ids) == list:
-        str_id_path = '_'.join([str(i) for i in img_ids])
-    else:
-        str_id_path = str(img_ids)
-
-    sample_images = imgs.data[:25]
-    sample_grid = make_grid(sample_images, nrow=5, normalize=True, scale_each=False, padding=2, pad_value=0)
-    viz_image_logger.image(sample_grid, opts=dict(title=str_id_path))
-
-
-def apply_mask(img, mask):
-    return torch.mul(img+1, mask).type(Tensor) - 1
-
+cuda = is_cuda(opt.use_cpu)
 
 # Logging
 if opt.logging:
@@ -110,7 +48,7 @@ criteria = torch.nn.BCELoss()
 generator = Generator(opt.batch_size, opt.latent_dim, opt.channels)
 discriminator = Discriminator(opt.batch_size, opt.channels)
 for model, model_name in [(generator, 'g'), (discriminator, 'd')]:
-    load_model(model, model_name)
+    load_model(cuda, model, model_name)
 
 
 if cuda:
@@ -122,6 +60,8 @@ dataloader = helper.load_dataset(opt.dataset, opt.img_size, opt.batch_size)
 
 Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
+num_batches = min(opt.num_batches, len(dataloader))
+
 # ----------
 #  Completion
 # ----------
@@ -129,18 +69,18 @@ masked_imgs = None
 generated_fills_for_blend = None
 for i, (imgs, _) in enumerate(dataloader):
 
-    if i == 1:
+    if i == num_batches:
         break
 
     imgs = imgs.type(Tensor)
     save_sample_images(imgs, 'originals', i)
 
-    z = create_noise(imgs.shape[0], opt.latent_dim)
+    z = create_noise(cuda, imgs.shape[0], opt.latent_dim)
     optimizer = torch.optim.Adam([z], lr=opt.lr, betas=(opt.b1, opt.b2))
 
-    img_mask = generate_center_mask(opt.img_size, opt.channels, 0.3)
-    fill_mask = generate_center_mask(opt.img_size, opt.channels, 0.25)
-    masked_imgs = apply_mask(imgs, img_mask)
+    img_mask = generate_center_mask(Tensor, opt.img_size, opt.channels, 0.3)
+    fill_mask = generate_center_mask(Tensor, opt.img_size, opt.channels, 0.25)
+    masked_imgs = apply_mask(Tensor, imgs, img_mask)
 
     save_sample_images(masked_imgs, 'masked', i)
 
@@ -155,17 +95,17 @@ for i, (imgs, _) in enumerate(dataloader):
 
         gen_imgs = generator(z)
 
-        masked_gen_imgs = apply_mask(gen_imgs, img_mask)
+        masked_gen_imgs = apply_mask(Tensor, gen_imgs, img_mask)
 
-        generated_fills_for_blend = apply_mask(gen_imgs, 1 - fill_mask)
-        generated_fills = apply_mask(gen_imgs, 1 - img_mask)
+        generated_fills_for_blend = apply_mask(Tensor, gen_imgs, 1 - fill_mask)
+        generated_fills = apply_mask(Tensor, gen_imgs, 1 - img_mask)
         completed_imgs = generated_fills + masked_imgs
 
         if j % opt.sample_interval == 0:
             save_sample_images(gen_imgs, 'generated', [i, j])
             save_sample_images(completed_imgs, 'completed', [i, j])
             if opt.logging:
-                log_sample_images(completed_imgs, [i, j])
+                log_sample_images(viz_image_logger, completed_imgs, [i, j])
 
         contextual_loss = torch.norm(torch.abs(masked_gen_imgs - masked_imgs), p=1)
 
@@ -194,7 +134,7 @@ for i, (imgs, _) in enumerate(dataloader):
         completion_loss.backward()
         optimizer.step()
 
-        print("[Batch %d/%d] [Iter %d/%d] [Completion loss: %f]" % (i, len(dataloader), j, opt.num_iters,
+        print("[Batch %d/%d] [Iter %d/%d] [Completion loss: %f]" % (i, num_batches, j, opt.num_iters,
                                                                          completion_loss.item()))
 
     # ----------
@@ -202,10 +142,10 @@ for i, (imgs, _) in enumerate(dataloader):
     # ----------
     if (opt.blend):
         if opt.logging:
-            log_sample_images(masked_imgs, "masked")
-            log_sample_images(generated_fills_for_blend, "fills")
+            log_sample_images(viz_image_logger, masked_imgs, "masked")
+            log_sample_images(viz_image_logger, generated_fills_for_blend, "fills")
         blended_batch = helper.blend_batch(masked_imgs[:25], generated_fills_for_blend[:25], Tensor)
         if opt.logging:
-            log_sample_images(blended_batch, i)
+            log_sample_images(viz_image_logger, blended_batch, i)
         save_sample_images(blended_batch, 'blended', i)
 

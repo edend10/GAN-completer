@@ -7,6 +7,7 @@ import torch
 import helper
 from models import Generator, Discriminator
 from visdom import Visdom
+from utils import is_cuda
 
 os.makedirs('images', exist_ok=True)
 
@@ -16,7 +17,6 @@ parser.add_argument('--batch_size', type=int, default=64, help='size of the batc
 parser.add_argument('--lr', type=float, default=0.0002, help='adam: learning rate')
 parser.add_argument('--b1', type=float, default=0.5, help='adam: decay of first order momentum of gradient')
 parser.add_argument('--b2', type=float, default=0.999, help='adam: decay of first order momentum of gradient')
-parser.add_argument('--n_cpu', type=int, default=8, help='number of cpu threads to use during batch generation')
 parser.add_argument('--latent_dim', type=int, default=100, help='dimensionality of the latent space')
 parser.add_argument('--img_size', type=int, default=32, help='size of each image dimension')
 parser.add_argument('--channels', type=int, default=3, help='number of image channels')
@@ -24,17 +24,14 @@ parser.add_argument('--sample_interval', type=int, default=400, help='interval b
 parser.add_argument('--dataset', type=str, default='cifar10', help='dataset name')
 parser.add_argument('--logging', type=bool, default=False, help='log or not')
 parser.add_argument('--log_port', type=int, default=8080, help='visdom log panel port')
+parser.add_argument('--use_cpu', type=bool, default=False, help='if testing on cpu')
 opt = parser.parse_args()
 print(opt)
 
-cuda = True if torch.cuda.is_available() else False
-
-if cuda:
-    print("Using Cuda!")
-else:
-    print("No Cuda :(")
+cuda = is_cuda(opt.use_cpu)
 
 
+# Create z noise for generator input
 def create_noise(batch_size, latent_dim):
     return Variable(Tensor(batch_size, latent_dim).normal_().view(-1, latent_dim, 1, 1))
 
@@ -114,7 +111,7 @@ for epoch in range(opt.n_epochs):
         # Generate a batch of images
         gen_imgs = generator(z)
 
-        # Loss measures generator's ability to fool the discriminator
+        # G loss to measure the generator's ability to fool the discriminator
         g_loss = criteria(discriminator(gen_imgs), valid)
 
         discriminator.zero_grad()
@@ -124,13 +121,14 @@ for epoch in range(opt.n_epochs):
 
         print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]" % (epoch, opt.n_epochs, i, len(dataloader),
                                                             d_loss.item(), g_loss.item()))
-        # for logging purposes
+        # For logging purposes
         avg_d_real_loss += float(real_loss)
         avg_d_fake_loss += float(fake_loss)
         avg_d_total_loss += float(d_loss)
         avg_g_loss += float(g_loss)
         epoch_batches += 1
 
+        # Save sample images
         batches_done = epoch * len(dataloader) + i
         if batches_done % opt.sample_interval == 0:
             sample_images = gen_imgs.data[:25]
@@ -139,7 +137,7 @@ for epoch in range(opt.n_epochs):
                 sample_grid = make_grid(sample_images, nrow=5, normalize=True, scale_each=False, padding=2, pad_value=0)
                 viz_image_logger.image(sample_grid, opts=dict(title='%s_b_%d' % (opt.dataset, batches_done)))
 
-    # log epoch losses
+    # Log epoch losses
     avg_d_real_loss /= epoch_batches
     avg_d_fake_loss /= epoch_batches
     avg_d_total_loss /= epoch_batches
@@ -150,6 +148,6 @@ for epoch in range(opt.n_epochs):
         d_total_loss_logger.log(epoch, avg_d_total_loss)
         g_loss_logger.log(epoch, avg_g_loss)
 
-    # checkpoint
+    # Checkpoint save model
     torch.save(generator.state_dict(), "checkpoint/g_model")
     torch.save(discriminator.state_dict(), "checkpoint/d_model")
