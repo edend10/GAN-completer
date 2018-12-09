@@ -1,9 +1,11 @@
 from torchvision.utils import save_image, make_grid
 import torch
+import numpy as np
 
 ##############
 # Eden Dolev #
 ##############
+
 
 # Create random z vector for generator input
 def create_noise(cuda, batch_size, latent_dim):
@@ -22,6 +24,12 @@ def generate_center_mask(Tensor, img_size, num_channels, center_scale=0.3):
     low = int(img_size * center_scale)
     high = int(img_size * (1 - center_scale))
     mask[:, low:high, low:high] = 0
+    return mask
+
+
+def generate_random_mask(Tensor, img_size, num_channels, mask_threshold=0.2):
+    mask = np.ones([img_size, img_size, num_channels])
+    mask[np.random.random([img_size, img_size]) < mask_threshold] = 0.0
     return mask
 
 

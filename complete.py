@@ -31,6 +31,7 @@ parser.add_argument('--logging', type=bool, default=False, help='log or not')
 parser.add_argument('--log_port', type=int, default=8080, help='visdom log panel port')
 parser.add_argument('--blend', type=bool, default=False, help='blend after completion?')
 parser.add_argument('--num_batches', type=int, default=1, help='number of batches to evaluate')
+parser.add_argument('--mask_type', type=int, default=1, help='mask type')
 
 opt = parser.parse_args()
 print(opt)

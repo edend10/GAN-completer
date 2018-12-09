@@ -101,8 +101,8 @@ def load_dataset(dataset_name, image_size, batch_size):
         dataloader = torch.utils.data.DataLoader(
             datasets.ImageFolder(path,
                                  transform=transforms.Compose([
-                                     transforms.CenterCrop(256),
                                      transforms.Resize(image_size),
+                                     transforms.CenterCrop(image_size),
                                      transforms.ToTensor(),
                                      transforms.Normalize(normal_mean, normal_std)
                                  ])),
