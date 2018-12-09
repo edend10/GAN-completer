@@ -19,9 +19,9 @@ When doing the completion, we keep track of both a "perceptual" and a "contextua
 - Running the completion algorithm (`complete.py`)
 
 ## Results
-| Original                  | Masked        | Generated    | Completed  | Blended  |
-| :-----------------------: |:-------------:| :---------:  | :--------: | :-----:  |
-| ![](assets/original.png)  | right-aligned | $1600 | a    | b          | c        |
+| Original                  | Masked                 | Generated                  | Completed                 | Blended                 |
+| :-----------------------: |:----------------------:| :-----------------------:  | :-----------------------: | :--------------------:  |
+| ![](assets/original.png)  | ![](assets/masked.png) | ![](assets/genereated.png) | ![](assets/completed.png) | ![](assets/blended.png) |
 
 
 ## Dependencies
