@@ -20,7 +20,7 @@ When doing the completion, we keep track of both a "perceptual" and a "contextua
 
 ## Results
 | Original      | Masked        | Generated    | Completed  | Blended  |
-| :-----------: |:-------------:| :----:|
+| :-----------: |:-------------:| :----:       |            |          |
 | col 3 is      | right-aligned | $1600 | a    | b          | c        |
 
 
