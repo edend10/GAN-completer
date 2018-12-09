@@ -14,6 +14,13 @@ GANs can be used to pit two neural networks at each other: one (discriminator) t
 After training the GAN, inpainting on missing "blobs" in the image can be accomplished by using the trained models to learn which input to the generator results in the most suitable completed image.
 When doing the completion, we keep track of both a "perceptual" and a "contextual" loss. The former keeping the generated image "realistic" and the latter adjusting the output to resemble the image we are trying to complete.
 
+### Architectures
+- Discriminator
+![](assets/architectures/discriminator.png)
+
+- Generator
+![](assets/architectures/generator.png)
+
 ### Steps
 - Training the GAN (`train_dcgan.py`)
 - Running the completion algorithm (`complete.py`)
