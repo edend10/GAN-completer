@@ -19,10 +19,16 @@ When doing the completion, we keep track of both a "perceptual" and a "contextua
 - Running the completion algorithm (`complete.py`)
 
 ## Results
-| Original                  | Masked                 | Generated                  | Completed                 | Blended                 |
-| :-----------------------: |:----------------------:| :-----------------------:  | :-----------------------: | :--------------------:  |
-| ![](assets/original.png)  | ![](assets/masked.png) | ![](assets/generated.png) | ![](assets/completed.png) | ![](assets/blended.png) |
+### Example Completion
+| Original                          | Masked                         | Generated                         | Completed                         | Blended                         |
+| :-------------------------------: |:------------------------------:| :------------------------------:  | :-------------------------------: | :----------------------------:  |
+| ![](assets/example/original.png)  | ![](assets/example/masked.png) | ![](assets/example/generated.png) | ![](assets/example/completed.png) | ![](assets/example/blended.png) |
 
+### Training GAN
+
+| Generated Samples Training Progression        | Discriminator Loss                     | Generator Loss                         |
+| :-------------------------------------------: | :------------------------------------: | :------------------------------------: |
+| ![](assets/training/celeba/samples.gif)       | ![](assets/training/celeba/d_loss.svg) | ![](assets/training/celeba/g_loss.svg) |
 
 ## Dependencies
 ```
