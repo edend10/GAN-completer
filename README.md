@@ -1,5 +1,7 @@
 # Image Completion/Inpainting using GAN (DCGAN)
 
+Final project for [Columbia University W4731 Computer Vision with Professor Carl Vondrick](http://w4731.cs.columbia.edu/)
+
 ## Author
 Eden Dolev
 
