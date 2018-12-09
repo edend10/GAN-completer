@@ -12,3 +12,4 @@ checkpoint
 tests.py
 blend_test
 backup
+_cache*

@@ -97,9 +97,19 @@ def load_dataset(dataset_name, image_size, batch_size):
                                      transforms.Normalize(normal_mean, normal_std)
                                  ])),
             batch_size=batch_size, shuffle=True)
-    elif dataset_name == 'lsun_tower':
+    elif dataset_name == 'lsun_tower_train':
         dataloader = torch.utils.data.DataLoader(
-            datasets.ImageFolder(path,
+            datasets.LSUN(path, classes=['tower_train'],
+                                 transform=transforms.Compose([
+                                     transforms.Resize(image_size),
+                                     transforms.CenterCrop(image_size),
+                                     transforms.ToTensor(),
+                                     transforms.Normalize(normal_mean, normal_std)
+                                 ])),
+            batch_size=batch_size, shuffle=True)
+    elif dataset_name == 'lsun_tower_test':
+        dataloader = torch.utils.data.DataLoader(
+            datasets.LSUN(path, classes=['tower_test'],
                                  transform=transforms.Compose([
                                      transforms.Resize(image_size),
                                      transforms.CenterCrop(image_size),

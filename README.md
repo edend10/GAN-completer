@@ -167,3 +167,4 @@ Parts of the code were adapted from or inspired by the following repos:
 - https://github.com/znxlwm/pytorch-MNIST-CelebA-GAN-DCGAN
 - https://github.com/bamos/dcgan-completion.tensorflow
 - https://github.com/lotuswhl/Image-inpainting-with-dcgan-pytorch
+- https://github.com/last-one/DCGAN-Pytorch
