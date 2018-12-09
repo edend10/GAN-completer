@@ -28,7 +28,7 @@ When doing the completion, we keep track of both a "perceptual" and a "contextua
 
 | Generated Samples Training Progression        | Discriminator Loss                     | Generator Loss                         |
 | :-------------------------------------------: | :------------------------------------: | :------------------------------------: |
-| ![](assets/training/celeba/samples.gif)       | ![](assets/training/celeba/d_loss.svg) | ![](assets/training/celeba/g_loss.svg) |
+| ![](assets/training/celeba/sample.gif)        | ![](assets/training/celeba/d_loss.svg) | ![](assets/training/celeba/g_loss.svg) |
 
 ## Dependencies
 ```
