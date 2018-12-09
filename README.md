@@ -14,15 +14,24 @@ When doing the completion, we keep track of both a "perceptual" and a "contextua
 
 ### Steps
 - Training the GAN (`train_dcgan.py`)
-- Running the completion algorithm ('complete.py')
+- Running the completion algorithm (`complete.py`)
 
 ## Results
 
+## Dependencies
+```
+python3
+numpy
+torch
+torchvision
+python-opencv
+Visdom (optional)
+```
 
 ## How to run
 
 ### Setup
-- Install dependencies (see below)
+- Install dependencies (see above)
 
 - Set up dataset/s in `data` directory. Directory name should match dataset name in loader (`helper.py`) and should have at least one sub directory under that.
 i.e.
@@ -97,6 +106,31 @@ python3 complete.py --dataset=celeba_test --n_iters=5000 --img_size=64 --channel
 - `logging`: log images/losses to Visdom or not
 - `log_port`: Visdom log port
 - `sample_interval`: how often to save sample images during training
+
+## Files
+### Main Files
+- `train_dcgan.py`: train DCGAN
+- `complete.py`: test image completion
+- `models.py`: NNs
+- `helper.py`: helper functions (load dataset, blending, etc.)
+- `utils.py`: utility functions (save/log sample images, etc.)
+
+### Generated Files
+- `checkpoint/d_model`: discriminator model
+- `checkpoint/g_model`: generator model
+- `images/training/*`: saved training samples
+- `images/completion/originals/*`: original image batches from dataset
+- `images/completion/masked/*`: originals after masks applied. `mask * original`.
+- `images/completion/generated/*`: generated fake images
+- `images/completion/completed/*`: completed images. `mask * original + (1 - mask) * generated`
+- `images/completion/blended/*`: completed images after alpha blending applied.
+
+### Other Files
+- `eval.py`: modification of `completer.py` to evaluate blended completion output using trained discriminator
+- `generator_test.py`: test generator model by generating fake images
+- `dataset_test.py`: test loading a dataset
+- `blend_test.py`: test image blending
+
 
 ## Datasets
 Datasets used and supported by the project:

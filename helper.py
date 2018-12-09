@@ -8,7 +8,13 @@ from scipy import ndimage
 import numpy as np
 from scipy.ndimage.morphology import distance_transform_edt as euc_dist
 
+##############
+# Eden Dolev #
+##############
 
+
+# Load dataset. For datasets not included with torch `dataset_name` must match directory name
+# For each image we resize, convert to torch tensor and normalize. Some also get cropped before
 def load_dataset(dataset_name, image_size, batch_size):
     path = 'data/' + dataset_name
     normal_mean = (0.5, 0.5, 0.5)
@@ -95,21 +101,21 @@ def load_dataset(dataset_name, image_size, batch_size):
     return dataloader
 
 
+# Create Visdom logger
 def get_logger(port, name):
     return VisdomPlotLogger('line', port=port, opts={'title': '%s' % name})
 
 
+# Alpha blend image with a fill image
+# `fill` expected to have color where `img` doesn't, and vice versa
 def alpha_blend_img(img, fill, Tensor):
+    # convert images to np arrays with 0-255 values
     img = to_np(img)
     fill = to_np(fill)
-    # img = img.astype('uint8')
-    # fill = fill.astype('uint8')
-    #
-    # img = np.einsum('kij->ijk', img)
-    # fill = np.einsum('kij->ijk', fill)
 
     bin_img = binary_mask(img)
     bin_fill = binary_mask(fill)
+    # euclidean distances
     edt1 = euc_dist(bin_img)
     edt2 = euc_dist(bin_fill)
 
@@ -126,17 +132,20 @@ def alpha_blend_img(img, fill, Tensor):
             if w1 + w2 == 0:
                 blended[i][j] = np.array([0, 0, 0])
             else:
+                # apply alpha blending to pixels using euclidean distances as weights
                 blended[i][j][0] = np.uint8((w1 * img[i][j][0] + w2 * fill[i][j][0]) / (w1 + w2))
                 blended[i][j][1] = np.uint8((w1 * img[i][j][1] + w2 * fill[i][j][1]) / (w1 + w2))
                 blended[i][j][2] = np.uint8((w1 * img[i][j][2] + w2 * fill[i][j][2]) / (w1 + w2))
 
     if Tensor is not None:
+        # convert back to torch tensors
         blended = np.einsum('ijk->kij', blended)
         blended = Tensor(blended)
 
     return blended
 
 
+# Apply alpha blend to batch
 def blend_batch(masked_imgs, generated_fills, Tensor=None):
     ret = [alpha_blend_img(img, fill, Tensor) for (img, fill) in zip(masked_imgs, generated_fills)]
     if Tensor is not None:
@@ -144,6 +153,7 @@ def blend_batch(masked_imgs, generated_fills, Tensor=None):
     return ret
 
 
+# Create binary mask for image
 def binary_mask(img):
     sum_channels_img = np.sum(img, axis=2)
     binary_mask = (sum_channels_img > 0) * 1
@@ -151,6 +161,7 @@ def binary_mask(img):
     return binary_mask
 
 
+# Poisson blend image with fill (unused)
 def poisson_blend_img(img, fill):
     img = img.astype('uint8')
     fill = fill.astype('uint8')
@@ -172,6 +183,7 @@ def poisson_blend_img(img, fill):
     return blended
 
 
+# Crop image to it's roi (where it has color)
 def crop_roi(img):
     coords = np.argwhere(img)
     x_min, y_min, _ = coords.min(axis=0)
@@ -180,6 +192,7 @@ def crop_roi(img):
     return cropped_img.astype('uint8')
 
 
+# Convert image as torch tensor to image as numpy array and normalize to 0-255
 def to_np(tensor):
     tensor = tensor.clone()  # avoid modifying tensor in-place
 

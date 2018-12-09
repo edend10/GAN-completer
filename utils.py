@@ -1,6 +1,9 @@
 from torchvision.utils import save_image, make_grid
 import torch
 
+##############
+# Eden Dolev #
+##############
 
 # Create random z vector for generator input
 def create_noise(cuda, batch_size, latent_dim):

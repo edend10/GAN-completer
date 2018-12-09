@@ -5,7 +5,7 @@ from torchvision.utils import save_image, make_grid
 from torch.autograd import Variable
 import torch
 import helper
-from alt_models import Generator, Discriminator
+from backup.alt_models import Generator, Discriminator
 from visdom import Visdom
 
 os.makedirs('images', exist_ok=True)

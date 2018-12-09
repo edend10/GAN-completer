@@ -8,6 +8,10 @@ from models import Generator, Discriminator
 from visdom import Visdom
 from utils import is_cuda, create_noise, generate_center_mask, load_model, save_sample_images, log_sample_images, apply_mask
 
+##############
+# Eden Dolev #
+##############
+
 os.makedirs('images', exist_ok=True)
 
 parser = argparse.ArgumentParser()
@@ -75,10 +79,12 @@ for i, (imgs, _) in enumerate(dataloader):
     imgs = imgs.type(Tensor)
     save_sample_images(imgs, 'originals', i)
 
+    # initial input for generator. This is what we want to optimize
     z = create_noise(cuda, imgs.shape[0], opt.latent_dim)
     optimizer = torch.optim.Adam([z], lr=opt.lr, betas=(opt.b1, opt.b2))
 
     img_mask = generate_center_mask(Tensor, opt.img_size, opt.channels, 0.3)
+    # we also want a slightly bigger version of the mask for alpha blending later
     fill_mask = generate_center_mask(Tensor, opt.img_size, opt.channels, 0.25)
     masked_imgs = apply_mask(Tensor, imgs, img_mask)
 
@@ -87,6 +93,9 @@ for i, (imgs, _) in enumerate(dataloader):
     avg_contextual_loss = 0
     avg_perceptual_loss = 0
     avg_completion_loss = 0
+
+    # iterate n times over the same batch and optimize to find the best z input vector
+    # that will produce the best completed result
     for j in range(opt.num_iters):
         if z.grad is not None:
             z.grad.data.zero_()
@@ -95,22 +104,32 @@ for i, (imgs, _) in enumerate(dataloader):
 
         gen_imgs = generator(z)
 
+        # apply mask to generated fake images
         masked_gen_imgs = apply_mask(Tensor, gen_imgs, img_mask)
 
+        # crop out a slightly bigger fill from the fake image than the missing part of the original image
+        # for later blending purposes
         generated_fills_for_blend = apply_mask(Tensor, gen_imgs, 1 - fill_mask)
+
+        # save/log a sample of completed images (masked original + fill)
         generated_fills = apply_mask(Tensor, gen_imgs, 1 - img_mask)
         completed_imgs = generated_fills + masked_imgs
-
         if j % opt.sample_interval == 0:
             save_sample_images(gen_imgs, 'generated', [i, j])
             save_sample_images(completed_imgs, 'completed', [i, j])
             if opt.logging:
                 log_sample_images(viz_image_logger, completed_imgs, [i, j])
 
+        # calculate the contextual loss.
+        # the pixels we have color for in the original image minus the same pixels in the generated image.
+        # this is how we measure the similarity between what we generated and the original image
         contextual_loss = torch.norm(torch.abs(masked_gen_imgs - masked_imgs), p=1)
 
+        # calculate the perceptual loss.
+        # similar to how we originally trained the generator.
+        # this is how we measure the ability of the generator image to fool the discriminator.
+        # it keeps the generated images "realistic"
         d_output = discriminator(gen_imgs)
-
         valid = Variable(Tensor(np.random.uniform(0.8, 1.2, (imgs.shape[0], 1, 1, 1))), requires_grad=False)
         perceptual_loss = criteria(d_output, valid)
 
@@ -141,6 +160,9 @@ for i, (imgs, _) in enumerate(dataloader):
     #  Blending
     # ----------
     if (opt.blend):
+        # apply alpha blending to the images.
+        # for alpha blending we use a "fill" crop from the generated fake images that is
+        # slightly larger than the missing part of the original image
         if opt.logging:
             log_sample_images(viz_image_logger, masked_imgs, "masked")
             log_sample_images(viz_image_logger, generated_fills_for_blend, "fills")

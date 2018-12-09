@@ -10,7 +10,6 @@ from utils import is_cuda, create_noise, generate_center_mask, load_model, save_
 
 ##############
 # Eden Dolev #
-# COMS 4731  #
 ##############
 
 os.makedirs('images', exist_ok=True)

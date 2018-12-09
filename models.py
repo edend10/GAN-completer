@@ -1,6 +1,11 @@
 import torch.nn as nn
 
+##############
+# Eden Dolev #
+##############
 
+
+# Generator NN
 class Generator(nn.Module):
     def __init__(self, ngf, latent_dimension, num_channels):
         super(Generator, self).__init__()
@@ -40,6 +45,7 @@ class Generator(nn.Module):
         return output
 
 
+# Discriminator NN
 class Discriminator(nn.Module):
     def __init__(self, ndf, num_channels):
         super(Discriminator, self).__init__()

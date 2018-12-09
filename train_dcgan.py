@@ -9,6 +9,10 @@ from models import Generator, Discriminator
 from visdom import Visdom
 from utils import is_cuda
 
+##############
+# Eden Dolev #
+##############
+
 os.makedirs('images', exist_ok=True)
 
 parser = argparse.ArgumentParser()
