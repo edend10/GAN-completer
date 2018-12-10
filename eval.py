@@ -64,7 +64,7 @@ dataloader = helper.load_dataset(opt.dataset, opt.img_size, opt.batch_size)
 
 Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
-num_batches = min(opt.num_batches, len(dataloader))
+num_batches = min(opt.num_batches, len(dataloader) - 1)
 
 # ----------
 #  Completion
@@ -142,6 +142,9 @@ for i, (imgs, _) in enumerate(dataloader):
     # cv2 Inpainting for Evaluation
     # ----------
     cv2_inpainted_imgs = helper.cv2_inpaint_batch(masked_imgs, img_mask, opt.channels, Tensor)
+    save_sample_images(cv2_inpainted_imgs, 'cv2', i)
+    if opt.logging:
+        log_sample_images(viz_image_logger, cv2_inpainted_imgs, i)
 
     # ----------
     #  Evaluation
