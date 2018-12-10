@@ -38,12 +38,25 @@ When doing the completion, we keep track of both a "perceptual" and a "contextua
 * `Completed` is the masked image with a crop fill of the generated image pasted on it
 * `Blended` is the completed image after applying alpha blending
 
+#### Parameters used in completion for both datasets:
+- `lr`: 0.002
+- `batch_size`: 128
+- `img_size`: 64
+- `latent_dim`: 100
+- `percep_coeff`: 5000
+
 ### Training GAN
 
-| Generated Samples Training Progression            | Discriminator Loss                         | Generator Loss                             |
-| :-----------------------------------------------: | :---------------------------------------:  | :--------------------------------------:   |
-| ![](assets/training/celeba/sample.gif)            | ![](assets/training/celeba/d_loss.svg)     | ![](assets/training/celeba/g_loss.svg)     |
-| ![](assets/training/lsun_tower/sample.gif)        | ![](assets/training/lsun_tower/d_loss.svg) | ![](assets/training/lsun_tower/g_loss.svg) |
+| Dataset   | Generated Samples Training Progression            | Discriminator Loss                         | Generator Loss                             |
+| :-----:   | :-----------------------------------------------: | :---------------------------------------:  | :--------------------------------------:   |
+| CelebA    | ![](assets/training/celeba/sample.gif)            | ![](assets/training/celeba/d_loss.svg)     | ![](assets/training/celeba/g_loss.svg)     |
+| LSUN tower| ![](assets/training/lsun_tower/sample.gif)        | ![](assets/training/lsun_tower/d_loss.svg) | ![](assets/training/lsun_tower/g_loss.svg) |
+
+#### Parameters used for training models on both datasets:
+- `lr`: 0.002
+- `batch_size`: 128
+- `img_size`: 64
+- `latent_dim`: 100
 
 ## Dependencies
 ```
