@@ -209,3 +209,32 @@ def to_np(tensor):
 
     ndarr = tensor.mul(255).clamp(0, 255).byte().permute(1, 2, 0).cpu().numpy()
     return ndarr
+
+
+def cv2_inpaint(masked_img, mask, num_channels, Tensor=None):
+    mask = to_np(mask)
+
+    if num_channels > 1:
+        mask = mask[:, :, 0]
+
+    masked_img = to_np(masked_img)
+    inpainting_mask = 1 - mask
+
+    src = masked_img
+    msk = inpainting_mask
+    inpainted = cv2.inpaint(np.uint8(src), np.uint8(msk), 3, cv2.INPAINT_NS)
+
+    if Tensor is not None:
+        # convert back to torch tensors
+        inpainted = np.einsum('ijk->kij', inpainted)
+        inpainted = Tensor(inpainted)
+
+    return inpainted
+
+
+# Apply alpha blend to batch
+def cv2_inpaint_batch(masked_imgs, mask, num_channels, Tensor=None):
+    ret = [cv2_inpaint(img, mask, num_channels, Tensor) for img in masked_imgs]
+    if Tensor is not None:
+        ret = torch.stack(ret)
+    return ret

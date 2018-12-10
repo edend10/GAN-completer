@@ -92,4 +92,22 @@ def random():
     cv2.imwrite("blend_test/blended/blended_completion.png", blended)
 
 
-random()
+def cv2_inpaint():
+    img = cv2.imread("blend_test/masked/orig.png")
+    fill = cv2.imread("blend_test/generated/0_900.png")
+
+    img_mask = generate_mask(64, 3, 0.3)
+
+    masked_img = np.multiply(img_mask, img)
+
+    img_mask = generate_mask(64, 1, 0.3).squeeze()
+
+    inpainting_mask = 1 - img_mask
+
+    src = masked_img
+    msk = inpainting_mask
+    inpainted = cv2.inpaint(np.uint8(src), np.uint8(msk), 3, cv2.INPAINT_NS)
+
+    cv2.imwrite("blend_test/completed/inpainted.png", inpainted)
+
+cv2_inpaint()

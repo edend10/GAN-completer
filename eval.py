@@ -41,6 +41,7 @@ cuda = is_cuda(opt.use_cpu)
 if opt.logging:
     print("Init logging...")
     d_eval_logger_original = helper.get_logger(opt.log_port, 'd_eval_original')
+    d_eval_logger_cv2 = helper.get_logger(opt.log_port, 'd_eval_cv2')
     d_eval_logger_completed = helper.get_logger(opt.log_port, 'd_eval_completed')
     viz_image_logger = Visdom(port=opt.log_port, env="images")
 
@@ -75,6 +76,8 @@ completed_imgs = None
 eval_valid = Variable(Tensor(np.ones([opt.batch_size, 1, 1, 1])), requires_grad=False)
 avg_d_eval_original = 0
 avg_d_eval_completed = 0
+avg_d_eval_cv2 = 0
+img_mask = None
 for i, (imgs, _) in enumerate(dataloader):
 
     if i == num_batches:
@@ -136,6 +139,11 @@ for i, (imgs, _) in enumerate(dataloader):
     save_sample_images(blended_batch_sample, 'blended', i)
 
     # ----------
+    # cv2 Inpainting for Evaluation
+    # ----------
+    cv2_inpainted_imgs = helper.cv2_inpaint_batch(masked_imgs, img_mask, opt.channels, Tensor)
+
+    # ----------
     #  Evaluation
     # ----------
     discriminator.zero_grad()
@@ -145,6 +153,14 @@ for i, (imgs, _) in enumerate(dataloader):
     avg_d_eval_original += float(d_eval)
     if opt.logging:
         d_eval_logger_original.log(i, float(d_eval))
+
+    discriminator.zero_grad()
+    d_output = discriminator(cv2_inpainted_imgs)
+    d_eval = criteria(d_output, eval_valid)
+    print("---> [Batch %d/%d] [eval completed: %f]" % (i, num_batches, float(d_eval)))
+    avg_d_eval_cv2 += float(d_eval)
+    if opt.logging:
+        d_eval_logger_cv2.log(i, float(d_eval))
 
     discriminator.zero_grad()
     d_output = discriminator(blended_batch)

@@ -64,7 +64,7 @@ python3
 numpy
 torch
 torchvision
-python-opencv
+python-opencv (optional)
 Visdom (optional)
 ```
 
