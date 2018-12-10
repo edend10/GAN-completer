@@ -28,7 +28,6 @@ parser.add_argument('--channels', type=int, default=3, help='number of image cha
 parser.add_argument('--dataset', type=str, default='cifar10', help='dataset name')
 parser.add_argument('--logging', type=bool, default=False, help='log or not')
 parser.add_argument('--log_port', type=int, default=8080, help='visdom log panel port')
-parser.add_argument('--blend', type=bool, default=False, help='blend after completion?')
 parser.add_argument('--num_batches', type=int, default=10, help='number of batches to evaluate')
 opt = parser.parse_args()
 print(opt)

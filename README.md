@@ -39,9 +39,10 @@ When doing the completion, we keep track of both a "perceptual" and a "contextua
 
 ### Training GAN
 
-| Generated Samples Training Progression        | Discriminator Loss                     | Generator Loss                         |
-| :-------------------------------------------: | :------------------------------------: | :------------------------------------: |
-| ![](assets/training/celeba/sample.gif)        | ![](assets/training/celeba/d_loss.svg) | ![](assets/training/celeba/g_loss.svg) |
+| Generated Samples Training Progression            | Discriminator Loss                         | Generator Loss                             |
+| :-----------------------------------------------: | :---------------------------------------:  | :--------------------------------------:   |
+| ![](assets/training/celeba/sample.gif)            | ![](assets/training/celeba/d_loss.svg)     | ![](assets/training/celeba/g_loss.svg)     |
+| ![](assets/training/lsun_tower/sample.gif)        | ![](assets/training/lsun_tower/d_loss.svg) | ![](assets/training/lsun_tower/g_loss.svg) |
 
 ## Dependencies
 ```
@@ -156,6 +157,9 @@ python3 complete.py --dataset=celeba_test --n_iters=5000 --img_size=64 --channel
 - `dataset_test.py`: test loading a dataset
 - `blend_test.py`: test image blending
 
+## Notes
+- Minimal image size for training the models is 64
+- Completion script should be run with the same image/batch size parameters as the models were trained with
 
 ## Datasets
 Datasets used and supported by the project:

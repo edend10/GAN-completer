@@ -20,25 +20,7 @@ def load_dataset(dataset_name, image_size, batch_size):
     normal_mean = (0.5, 0.5, 0.5)
     normal_std = (0.5, 0.5, 0.5)
     os.makedirs(path, exist_ok=True)
-    if dataset_name == 'cifar10':
-        dataloader = torch.utils.data.DataLoader(
-            datasets.CIFAR10(path, train=True, download=True,
-                               transform=transforms.Compose([
-                                   transforms.Resize(image_size),
-                                   transforms.ToTensor(),
-                                   transforms.Normalize(normal_mean, normal_std)
-                               ])),
-            batch_size=batch_size, shuffle=True)
-    if dataset_name == 'cifar10_test':
-        dataloader = torch.utils.data.DataLoader(
-            datasets.CIFAR10(path, download=True,
-                               transform=transforms.Compose([
-                                   transforms.Resize(image_size),
-                                   transforms.ToTensor(),
-                                   transforms.Normalize(normal_mean, normal_std)
-                               ])),
-            batch_size=batch_size, shuffle=True)
-    elif dataset_name == 'mnist':
+    if dataset_name == 'mnist':
         dataloader = torch.utils.data.DataLoader(
             datasets.MNIST(path, train=True, download=True,
                            transform=transforms.Compose([
@@ -91,8 +73,8 @@ def load_dataset(dataset_name, image_size, batch_size):
         dataloader = torch.utils.data.DataLoader(
             datasets.ImageFolder(path,
                                  transform=transforms.Compose([
-                                     transforms.CenterCrop(256),
                                      transforms.Resize(image_size),
+                                     transforms.CenterCrop(image_size),
                                      transforms.ToTensor(),
                                      transforms.Normalize(normal_mean, normal_std)
                                  ])),
