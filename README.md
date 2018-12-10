@@ -29,7 +29,8 @@ When doing the completion, we keep track of both a "perceptual" and a "contextua
 ### Example Completion
 | Original                          | Masked                         | Generated                         | Completed                         | Blended                         |
 | :-------------------------------: |:------------------------------:| :------------------------------:  | :-------------------------------: | :----------------------------:  |
-| ![](assets/example/original.png)  | ![](assets/example/masked.png) | ![](assets/example/generated.png) | ![](assets/example/completed.png) | ![](assets/example/blended.png) |
+| ![](assets/example/celeba/original.png)  | ![](assets/example/celeba/masked.png) | ![](assets/example/celeba/generated.png) | ![](assets/example/celeba/completed.png) | ![](assets/example/celeba/blended.png) |
+| ![](assets/example/lsun_tower/original.png)  | ![](assets/example/lsun_tower/masked.png) | ![](assets/example/lsun_tower/generated.png) | ![](assets/example/lsun_tower/completed.png) | ![](assets/example/lsun_tower/blended.png) |
 
 * `Original` is original image from the dataset
 * `Masked` is the original image after mask applied to remove central part
