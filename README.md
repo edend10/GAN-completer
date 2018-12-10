@@ -149,7 +149,7 @@ python3 complete.py --dataset=celeba_test --n_iters=5000 --img_size=64 --channel
 - `sample_interval`: how often to save sample images during training
 
 ### Logging
-- (torchnet)[https://github.com/torchnet/torchnet] and (Visdom)[https://github.com/facebookresearch/visdom] are required for logging.
+- [torchnet](https://github.com/torchnet/torchnet) and [Visdom](https://github.com/facebookresearch/visdom) are required for logging.
 - Run Visdom server on port 8080 (or set port via --log_port` flag when running scripts):
 `python3 -m visdom.server -port 8080`
 
