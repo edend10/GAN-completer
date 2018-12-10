@@ -64,6 +64,7 @@ python3
 numpy
 torch
 torchvision
+torchnet (optional)
 python-opencv (optional)
 Visdom (optional)
 ```
@@ -146,6 +147,13 @@ python3 complete.py --dataset=celeba_test --n_iters=5000 --img_size=64 --channel
 - `logging`: log images/losses to Visdom or not
 - `log_port`: Visdom log port
 - `sample_interval`: how often to save sample images during training
+
+### Logging
+- `torchnet` and `Visdom` are required for logging.
+- Run Visdom server on port 8080 (or set port via --log_port` flag when running scripts):
+`python3 -m visdom.server -port 8080`
+
+* If you don't set `--logging=True` when running the scripts you should be fine without the dependencies and server (don't set it to false, just don't include the flag).
 
 ## Files
 ### Main Files
