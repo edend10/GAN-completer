@@ -212,13 +212,12 @@ def to_np(tensor):
 
 
 def cv2_inpaint(masked_img, mask, num_channels, Tensor=None):
-    mask = to_np(mask)
+    inpainting_mask = 1 - mask
+    inpainting_mask = to_np(inpainting_mask)
+    masked_img = to_np(masked_img)
 
     if num_channels > 1:
-        mask = mask[:, :, 0]
-
-    masked_img = to_np(masked_img)
-    inpainting_mask = 1 - mask
+        inpainting_mask = inpainting_mask[:, :, 0]
 
     src = masked_img
     msk = inpainting_mask

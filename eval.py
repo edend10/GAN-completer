@@ -160,7 +160,7 @@ for i, (imgs, _) in enumerate(dataloader):
     discriminator.zero_grad()
     d_output = discriminator(cv2_inpainted_imgs)
     d_eval = criteria(d_output, eval_valid)
-    print("---> [Batch %d/%d] [eval completed: %f]" % (i, num_batches, float(d_eval)))
+    print("---> [Batch %d/%d] [eval cv2 inpainting: %f]" % (i, num_batches, float(d_eval)))
     avg_d_eval_cv2 += float(d_eval)
     if opt.logging:
         d_eval_logger_cv2.log(i, float(d_eval))
@@ -175,6 +175,9 @@ for i, (imgs, _) in enumerate(dataloader):
 
 avg_d_eval_original /= opt.num_batches
 print("Avg eval originals: %f" % avg_d_eval_original)
+
+avg_d_eval_cv2 /= opt.num_batches
+print("Avg eval cv2 inpainting: %f" % avg_d_eval_cv2)
 
 avg_d_eval_completed /= opt.num_batches
 print("Avg eval completed: %f" % avg_d_eval_completed)
